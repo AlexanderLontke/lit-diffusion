@@ -30,14 +30,15 @@
 |
 
 =============
-lit-diffusion
+Lit Diffusion
 =============
 
 
-    Add a short description here!
+    An open source project implementing diffusion models as lightning modules.
 
 
-A longer description of your project goes here...
+This projects goal is to implement different diffusion models and their trainings procedures so that they can be re-used
+across multiple domains and project types while utilizing one standardized and refined implementation.
 
 
 .. _pyscaffold-notes:
