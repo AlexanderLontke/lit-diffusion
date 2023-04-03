@@ -2,7 +2,7 @@ from typing import Dict
 
 from importlib import import_module
 
-from remote_sensing_ddpm.constants import (
+from lit_diffusion.constants import (
     PYTHON_CLASS_CONFIG_KEY,
     STRING_PARAMS_CONFIG_KEY,
 )

@@ -33,7 +33,7 @@ class LitDDPM(pl.LightningModule):
     ):
         super().__init__()
         self.save_hyperparameters(ignore=["p_theta_model"])
-        self.diffusion_model = p_theta_model
+        self.p_theta_model = p_theta_model
         self.diffusion_target = DiffusionTarget(diffusion_target)
 
         # Fix beta schedule
@@ -98,7 +98,7 @@ class LitDDPM(pl.LightningModule):
             x_0=x_0,
             t=t,
         )
-        model_x = self.diffusion_model(noised_x, t)
+        model_x = self.p_theta_model(noised_x, t)
 
         # Determine target
         if self.diffusion_target == DiffusionTarget.X_0:
@@ -139,7 +139,7 @@ class LitDDPM(pl.LightningModule):
         :return: x at timestep t-1
         """
         z = torch.rand((1,)) if t > 1 else 0
-        model_estimation = self.diffusion_model(x_t, t)
+        model_estimation = self.p_theta_model(x_t, t)
         # Note: 1 - alpha_t = beta_t
         x_t_minus_one = (
             1.0
@@ -168,7 +168,11 @@ class LitDDPM(pl.LightningModule):
         return x_t
 
     def configure_optimizers(self):
+        """
+        Lightning method used to configure an optimizer for training
+        :return: torch Optimizer class
+        """
         lr = self.learning_rate
-        params = list(self.diffusion_model.parameters())
+        params = list(self.p_theta_model.parameters())
         opt = torch.optim.AdamW(params, lr=lr)
         return opt

@@ -11,8 +11,8 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import WandbLogger
 
 # Util
-from remote_sensing_ddpm.util import instantiate_python_class_from_string_config
-from remote_sensing_ddpm.constants import (
+from lit_diffusion.util import instantiate_python_class_from_string_config
+from lit_diffusion.constants import (
     SEED_CONFIG_KEY,
     DATASET_TRANSFORM_CONFIG_KEY,
     TORCH_DATASET_CONFIG_KEY,
@@ -25,7 +25,7 @@ from remote_sensing_ddpm.constants import (
 )
 
 # Diffusion
-from remote_sensing_ddpm.diffusion_process.ddpm import LitDDPM
+from lit_diffusion.ddpm.ddpm import LitDDPM
 
 
 def main(config: Dict):
