@@ -62,7 +62,7 @@ class LitDDPM(pl.LightningModule):
         self.register_buffer("sqrt_betas", np.sqrt(self.betas))
 
         # Setup loss
-        self.loss = nn.MSELoss()
+        self.loss = nn.MSELoss(reduction="sum")
 
         # Setup learning
         self.learning_rate = learning_rate
