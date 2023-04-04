@@ -50,7 +50,10 @@ def main(config: Dict):
         class_config=config[P_THETA_MODEL_CONFIG_KEY]
     )
     # Instantiate DDPM class
-    ddpm_pl_module = LitDDPM(p_theta_model=p_theta_model, **config[DDPM_CONFIG_KEY])
+    ddpm_pl_module = instantiate_python_class_from_string_config(
+        class_config=config[DDPM_CONFIG_KEY],
+        p_theta_model=p_theta_model,
+    )
 
     # PL-Trainer with the following features:
     # - Model Summary
