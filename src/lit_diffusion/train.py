@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 
 # PyTorch Lightning
 import pytorch_lightning as pl
-from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
 
 # Util
@@ -56,10 +56,11 @@ def main(config: Dict):
     )
 
     # PL-Trainer with the following features:
-    # - Model Summary
-    # - Progressbar
+    # - Progressbar (Default)
+    # - Model Summary (Default)
     # - WAND logging
     # - Checkpointing
+    # - Learning rate monitoring
     trainer = pl.Trainer(
         **config[PL_TRAINER_CONFIG_KEY],
         logger=WandbLogger(**config[PL_WANDB_LOGGER_CONFIG_KEY], config=config),
@@ -67,6 +68,7 @@ def main(config: Dict):
             ModelCheckpoint(
                 **config[PL_MODEL_CHECKPOINT_CONFIG_KEY],
             ),
+            LearningRateMonitor()
         ],
     )
     # Run training

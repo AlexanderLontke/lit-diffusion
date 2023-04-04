@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import Dict, Optional, Union
 
 import numpy as np
 
@@ -9,6 +9,7 @@ from torch import nn
 import pytorch_lightning as pl
 
 # Util
+from lit_diffusion.util import instantiate_python_class_from_string_config
 from lit_diffusion.constants import TRAINING_LOSS_METRIC_KEY
 from lit_diffusion.ddpm.util import extract_into_tensor, default
 from lit_diffusion.constants import (
@@ -30,6 +31,7 @@ class LitDDPM(pl.LightningModule):
         beta_schedule_linear_end: float,
         learning_rate: float,
         data_key: Optional[str] = None,
+        learning_rate_scheduler_config: Optional[Dict] = None,
     ):
         super().__init__()
         self.save_hyperparameters(ignore=["p_theta_model"])
@@ -64,8 +66,9 @@ class LitDDPM(pl.LightningModule):
         # Setup loss
         self.loss = nn.MSELoss(reduction="sum")
 
-        # Setup learning
+        # Setup learning and scheduler
         self.learning_rate = learning_rate
+        self.learning_rate_scheduler_config = learning_rate_scheduler_config
 
         # Data access
         self.data_key = data_key
@@ -172,7 +175,15 @@ class LitDDPM(pl.LightningModule):
         Lightning method used to configure an optimizer for training
         :return: torch Optimizer class
         """
+        return_dict = {}
         lr = self.learning_rate
         params = list(self.p_theta_model.parameters())
         opt = torch.optim.AdamW(params, lr=lr)
-        return opt
+        # If a learning rate scheduler config was given, initialize a lr-scheduler
+        if self.learning_rate_scheduler_config:
+            return_dict["lr_scheduler"] = instantiate_python_class_from_string_config(
+                class_config=self.learning_rate_scheduler_config,
+                optimizer=opt
+            )
+        return_dict["optimizer"] = opt
+        return return_dict
