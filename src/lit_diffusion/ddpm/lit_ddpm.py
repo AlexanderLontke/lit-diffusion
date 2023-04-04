@@ -166,7 +166,7 @@ class LitDDPM(pl.LightningModule):
         ):
             x_t = self.p_sample(
                 x_t=x_t,
-                t=t,
+                t=torch.tensor(t),
             )
         return x_t
 
