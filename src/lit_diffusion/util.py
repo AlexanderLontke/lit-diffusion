@@ -13,10 +13,9 @@ def instantiate_python_class_from_string_config(
 ):
     # Assert that necessary keys are contained in config
     assert isinstance(class_config, Dict), f"{class_config} is not a dictionary."
-    assert all(
-        k in class_config.keys()
-        for k in [PYTHON_CLASS_CONFIG_KEY, STRING_PARAMS_CONFIG_KEY]
-    ), f"Expected keys {PYTHON_CLASS_CONFIG_KEY} and {STRING_PARAMS_CONFIG_KEY} but got {', '.join(class_config.keys())}"
+    assert (
+        PYTHON_CLASS_CONFIG_KEY in class_config.keys()
+    ), f"Expected key {PYTHON_CLASS_CONFIG_KEY} but got keys: {', '.join(class_config.keys())}"
     # Get module and class names
     module_full_name: str = class_config[PYTHON_CLASS_CONFIG_KEY]
     module_sub_names = module_full_name.split(".")
@@ -26,7 +25,8 @@ def instantiate_python_class_from_string_config(
     module = import_module(module_name)
     # Instantiate class with config values
     return getattr(module, class_name)(
-        **class_config[STRING_PARAMS_CONFIG_KEY], **additional_kwargs
+        **class_config.get(STRING_PARAMS_CONFIG_KEY, default=dict()),
+        **additional_kwargs,
     )
 
 
