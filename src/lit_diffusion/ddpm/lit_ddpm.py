@@ -212,7 +212,7 @@ class LitDDPM(pl.LightningModule):
         :return: x at timestep t-1
         """
         b, *_ = x_t.shape
-        model_mean, _, model_log_variance = self.p_mean_variance(x=x_t, t=t)
+        model_mean, _, model_log_variance = self.p_mean_variance(x_t=x_t, t=t)
         noise = torch.randn_like(x_t)
         # no noise when t == 0
         nonzero_mask = (1 - (t == 0).float()).reshape(b, *((1,) * (len(x_t.shape) - 1)))
