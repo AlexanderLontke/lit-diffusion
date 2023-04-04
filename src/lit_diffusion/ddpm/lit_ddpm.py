@@ -184,7 +184,7 @@ class LitDDPM(pl.LightningModule):
         :param t: current timestep t
         :return: approximated mean and variance of the posterior distribution
         """
-        model_output = self.model(x_t, t)
+        model_output = self.p_theta_model(x_t, t)
         if self.diffusion_target == DiffusionTarget.EPS:
             x_0_predicted = (
                 extract_into_tensor(self.sqrt_recip_alphas_cumprod, t, x_t.shape) * x_t
