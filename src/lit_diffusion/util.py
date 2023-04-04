@@ -12,10 +12,11 @@ def instantiate_python_class_from_string_config(
     class_config: Dict, **additional_kwargs
 ):
     # Assert that necessary keys are contained in config
+    assert isinstance(class_config, Dict), f"{class_config} is not a dictionary."
     assert all(
         k in class_config.keys()
         for k in [PYTHON_CLASS_CONFIG_KEY, STRING_PARAMS_CONFIG_KEY]
-    )
+    ), f"Expected keys {PYTHON_CLASS_CONFIG_KEY} and {STRING_PARAMS_CONFIG_KEY} but got {', '.join(class_config.keys())}"
     # Get module and class names
     module_full_name: str = class_config[PYTHON_CLASS_CONFIG_KEY]
     module_sub_names = module_full_name.split(".")
@@ -38,7 +39,7 @@ class TestClass:
 if __name__ == "__main__":
 
     mock_class_config = {
-        PYTHON_CLASS_CONFIG_KEY: "remote_sensing_ddpm.util.TestClass",
+        PYTHON_CLASS_CONFIG_KEY: "lit_diffusion.util.TestClass",
         STRING_PARAMS_CONFIG_KEY: {"a": 1},
     }
     print(instantiate_python_class_from_string_config(mock_class_config, b=2).__dict__)
