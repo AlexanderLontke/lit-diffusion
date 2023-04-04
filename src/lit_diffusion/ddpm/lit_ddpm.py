@@ -54,14 +54,38 @@ class LitDDPM(pl.LightningModule):
 
         # Cache values often used for approximating p_{\theta}(x_{t-1}|x_{t})
         self.register_buffer("alphas", 1.0 - self.betas)
-        self.register_buffer("alphas_cumprod", torch.cumprod(self.alphas, dim=0))
-        self.register_buffer("sqrt_alphas_cumprod", torch.sqrt(self.alphas_cumprod))
+        alphas_cumprod = torch.cumprod(self.alphas, dim=0)
+        self.register_buffer("sqrt_alphas_cumprod", torch.sqrt(alphas_cumprod))
         self.register_buffer(
-            "sqrt_one_minus_alphas_cumprod", torch.sqrt(1 - self.alphas_cumprod)
+            "sqrt_one_minus_alphas_cumprod", torch.sqrt(1 - alphas_cumprod)
         )
         # Cache values often used to sample from p_{\theta}(x_{t-1}|x_{t})
-        self.register_buffer("sqrt_alphas", np.sqrt(self.alphas))
-        self.register_buffer("sqrt_betas", np.sqrt(self.betas))
+        alphas_cumprod_prev = alphas_cumprod.roll(shifts=1, dims=0)
+        alphas_cumprod_prev[0] = 1.0
+        self.register_buffer(
+            "posterior_mean_coef1",
+            torch.sqrt(alphas_cumprod_prev) * self.betas / (1.0 - alphas_cumprod),
+        )
+        self.register_buffer(
+            "posterior_mean_coef2",
+            torch.sqrt(self.alphas)
+            * (1.0 - alphas_cumprod_prev)
+            / (1.0 - alphas_cumprod),
+        )
+        self.register_buffer(
+            "posterior_variance",
+            (1.0 - alphas_cumprod_prev) / (1.0 - alphas_cumprod) * betas,
+        )
+        self.register_buffer(
+            "posterior_log_variance_clipped",
+            torch.log(np.maximum(self.posterior_variance, 1e-20)),
+        )
+        self.register_buffer(
+            "sqrt_recip_alphas_cumprod", torch.sqrt(1.0 / alphas_cumprod)
+        )
+        self.register_buffer(
+            "sqrt_recip_m1_alphas_cumprod", torch.sqrt(1.0 / alphas_cumprod - 1.0)
+        )
 
         # Setup loss
         self.loss = nn.MSELoss(reduction="sum")
@@ -234,3 +258,24 @@ class LitDDPM(pl.LightningModule):
             )
         return_dict["optimizer"] = opt
         return return_dict
+
+
+if __name__ == "__main__":
+    import numpy as np
+
+    betas = make_beta_schedule(
+        schedule="linear",
+        n_timestep=10,
+        linear_start=0.0001,
+        linear_end=0.02,
+    )
+    print(betas)
+    betas_prev = torch.tensor(
+        betas,
+        dtype=torch.float32,
+        device=torch.device("cpu"),
+        requires_grad=False,
+    ).roll(shifts=1, dims=0)
+    betas_prev[0] = 1.0
+    print(betas_prev)
+    print(np.append(1.0, betas[:-1]))
