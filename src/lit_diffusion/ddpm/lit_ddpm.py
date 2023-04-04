@@ -188,7 +188,7 @@ class LitDDPM(pl.LightningModule):
         if self.diffusion_target == DiffusionTarget.EPS:
             x_0_predicted = (
                 extract_into_tensor(self.sqrt_recip_alphas_cumprod, t, x_t.shape) * x_t
-                - extract_into_tensor(self.sqrt_recipm1_alphas_cumprod, t, x_t.shape)
+                - extract_into_tensor(self.sqrt_recip_m1_alphas_cumprod, t, x_t.shape)
                 * model_output
             )
         elif self.diffusion_target == DiffusionTarget.X_0:
