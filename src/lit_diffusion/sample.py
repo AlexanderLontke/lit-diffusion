@@ -15,6 +15,7 @@ from lit_diffusion.constants import (
     P_THETA_MODEL_CONFIG_KEY,
     SAMPLING_CONFIG_KEY,
     SAMPLING_SHAPE_CONFIG_KEY,
+    STRICT_CKPT_LOADING_CONFIG_KEY,
 )
 
 
@@ -62,7 +63,9 @@ if __name__ == "__main__":
     # Load Module checkpoint
     checkpoint_path = args.ckpt_path
     pl_module.load_from_checkpoint(
-        checkpoint_path=checkpoint_path, p_theta_model=p_theta_model
+        checkpoint_path=checkpoint_path,
+        strict=config[SAMPLING_CONFIG_KEY][STRICT_CKPT_LOADING_CONFIG_KEY],
+        p_theta_model=p_theta_model,
     )
 
     # Sample from model
