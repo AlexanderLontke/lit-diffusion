@@ -24,9 +24,6 @@ from lit_diffusion.constants import (
     PL_MODEL_CHECKPOINT_CONFIG_KEY,
 )
 
-# Diffusion
-from lit_diffusion.ddpm.ddpm import LitDDPM
-
 
 def main(config: Dict):
     # Set seed
