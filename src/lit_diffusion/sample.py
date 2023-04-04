@@ -1,4 +1,6 @@
 import argparse
+
+import torch
 import yaml
 
 from pathlib import Path
@@ -54,5 +56,5 @@ if __name__ == "__main__":
     pl_module.load_from_checkpoint(checkpoint_path=checkpoint_path)
 
     # Sample from model
-    sampled_image: Image.Image = F.to_pil_image(pic=pl_module.sample())
-    sampled_image.show()
+    sampled_image = pl_module.sample()
+    torch.save(sampled_image, f="./sampled_image.pt")
