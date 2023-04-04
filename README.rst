@@ -23,6 +23,10 @@
         :alt: Twitter
         :target: https://twitter.com/lit-diffusion
 
+.. image:: https://img.shields.io/badge/pytorch-lightning-blue.svg?logo=PyTorch%20Lightning
+    :alt: Project powered by PyTorch Lightning
+    :target: https://github.com/Lightning-AI/lightning
+
 .. image:: https://img.shields.io/badge/-PyScaffold-005CA0?logo=pyscaffold
     :alt: Project generated with PyScaffold
     :target: https://pyscaffold.org/
