@@ -141,7 +141,8 @@ class LitDDPM(pl.LightningModule):
         :param t: denotes current timestep
         :return: x at timestep t-1
         """
-        z = torch.rand((1,)) if t > 1 else 0
+        b, *_ = x_t.shape
+        z = torch.rand((b,)) if t > 1 else 0
         model_estimation = self.p_theta_model(x_t, t)
         # Note: 1 - alpha_t = beta_t
         x_t_minus_one = (
@@ -157,8 +158,8 @@ class LitDDPM(pl.LightningModule):
         return x_t_minus_one
 
     @torch.no_grad()
-    def p_sample_loop(self, shape, starting_noise: Optional[torch.Tensor] = None):
-        x_t = default(starting_noise, lambda: torch.randn(shape, device=self.device))
+    def p_sample_loop(self, shape, starting_noise: Optional[torch.Tensor] = None, batch_size: int = 1):
+        x_t = default(starting_noise, lambda: torch.randn((batch_size, *shape), device=self.device))
         for t in tqdm(
             reversed(range(self.beta_schedule_steps)),
             desc="DDPM sampling:",
@@ -166,7 +167,12 @@ class LitDDPM(pl.LightningModule):
         ):
             x_t = self.p_sample(
                 x_t=x_t,
-                t=torch.tensor(t),
+                t=torch.full(
+                    size=(batch_size,),
+                    fill_value=t,
+                    device=self.device,
+                    dtype=torch.long
+                ),
             )
         return x_t
 
