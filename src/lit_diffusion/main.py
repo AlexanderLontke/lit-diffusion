@@ -18,7 +18,7 @@ from lit_diffusion.constants import (
     TORCH_DATASET_CONFIG_KEY,
     TORCH_DATA_LOADER_CONFIG_KEY,
     P_THETA_MODEL_CONFIG_KEY,
-    DDPM_CONFIG_KEY,
+    DIFFUSION_MODEL_CONFIG_KEY,
     PL_TRAINER_CONFIG_KEY,
     PL_WANDB_LOGGER_CONFIG_KEY,
     PL_MODEL_CHECKPOINT_CONFIG_KEY,
@@ -51,7 +51,7 @@ def main(config: Dict):
     )
     # Instantiate DDPM class
     ddpm_pl_module = instantiate_python_class_from_string_config(
-        class_config=config[DDPM_CONFIG_KEY],
+        class_config=config[DIFFUSION_MODEL_CONFIG_KEY],
         p_theta_model=p_theta_model,
     )
 

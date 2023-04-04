@@ -5,10 +5,9 @@ from pathlib import Path
 from PIL import Image
 
 import torchvision.transforms.functional as F
-import pytorch_lightning as pl
 
 from lit_diffusion.util import instantiate_python_class_from_string_config
-from lit_diffusion.constants import DIFFUSION_MODEL_CONFIG_KEY
+from lit_diffusion.constants import DIFFUSION_MODEL_CONFIG_KEY, P_THETA_MODEL_CONFIG_KEY
 
 
 if __name__ == "__main__":
@@ -41,9 +40,14 @@ if __name__ == "__main__":
         except yaml.YAMLError as exc:
             print(exc)
 
-    # Get pytorch lightning module from config
-    pl_module: pl.LightningModule = instantiate_python_class_from_string_config(
+    # Instantiate model approximating p_theta(x_{t-1}|x_t)
+    p_theta_model = instantiate_python_class_from_string_config(
+        class_config=config[P_THETA_MODEL_CONFIG_KEY]
+    )
+    # Instantiate DDPM class
+    pl_module = instantiate_python_class_from_string_config(
         class_config=config[DIFFUSION_MODEL_CONFIG_KEY],
+        p_theta_model=p_theta_model,
     )
     # Load Module checkpoint
     checkpoint_path = args.ckpt_path
