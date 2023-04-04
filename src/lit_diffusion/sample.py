@@ -53,7 +53,7 @@ if __name__ == "__main__":
     )
     # Load Module checkpoint
     checkpoint_path = args.ckpt_path
-    pl_module.load_from_checkpoint(checkpoint_path=checkpoint_path)
+    pl_module.load_from_checkpoint(checkpoint_path=checkpoint_path, p_theta_model=p_theta_model)
 
     # Sample from model
     sampled_image = pl_module.sample()
