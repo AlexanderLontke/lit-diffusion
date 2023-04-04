@@ -74,7 +74,7 @@ class LitDDPM(pl.LightningModule):
         )
         self.register_buffer(
             "posterior_variance",
-            (1.0 - alphas_cumprod_prev) / (1.0 - alphas_cumprod) * betas,
+            (1.0 - alphas_cumprod_prev) / (1.0 - alphas_cumprod) * self.betas,
         )
         self.register_buffer(
             "posterior_log_variance_clipped",
