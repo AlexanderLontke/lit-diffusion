@@ -182,8 +182,7 @@ class LitDDPM(pl.LightningModule):
         # If a learning rate scheduler config was given, initialize a lr-scheduler
         if self.learning_rate_scheduler_config:
             return_dict["lr_scheduler"] = instantiate_python_class_from_string_config(
-                class_config=self.learning_rate_scheduler_config,
-                optimizer=opt
+                class_config=self.learning_rate_scheduler_config, optimizer=opt
             )
         return_dict["optimizer"] = opt
         return return_dict

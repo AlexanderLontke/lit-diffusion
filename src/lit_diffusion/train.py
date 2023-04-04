@@ -68,7 +68,7 @@ def main(config: Dict):
             ModelCheckpoint(
                 **config[PL_MODEL_CHECKPOINT_CONFIG_KEY],
             ),
-            LearningRateMonitor()
+            LearningRateMonitor(),
         ],
     )
     # Run training
