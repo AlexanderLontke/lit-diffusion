@@ -25,7 +25,7 @@ def instantiate_python_class_from_string_config(
     module = import_module(module_name)
     # Instantiate class with config values
     return getattr(module, class_name)(
-        **class_config.get(STRING_PARAMS_CONFIG_KEY, default=dict()),
+        **class_config.get(STRING_PARAMS_CONFIG_KEY, dict()),
         **additional_kwargs,
     )
 
