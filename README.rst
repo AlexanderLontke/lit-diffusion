@@ -49,6 +49,7 @@ across multiple domains and project types while utilizing one standardized and r
 
 Note
 ====
+The DDPM implementation is based off the implementation by Rombach et al. https://github.com/CompVis/stable-diffusion.
 
 This project has been set up using PyScaffold 4.3.1. For details and usage
 information on PyScaffold see https://pyscaffold.org/.

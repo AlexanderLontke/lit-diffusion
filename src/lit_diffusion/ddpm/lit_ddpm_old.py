@@ -1,3 +1,8 @@
+"""
+DEPRECATED and possibly faulty
+DO NOT USE!
+"""
+
 from typing import Dict, Optional, Union
 
 import numpy as np
@@ -133,52 +138,6 @@ class LitDDPM(pl.LightningModule):
         return noised_x, epsilon_noise
 
     # Methods related to sampling from the distribution p_{\theta}(x_{t-1}|x_{t})
-    def q_posterior(self, x_0, x_t, t):
-        """
-        Returns the posterior distribution q(x_{t-1}|x_t,x_0) which is defined by its mean and variance
-        :param x_0: x at timestep 0
-        :param x_t: x at timestep t
-        :param t: current timestep t
-        :return: mean, variance and log of the variance based on x_0, x_t, and t
-        """
-        posterior_mean = (
-            extract_into_tensor(self.posterior_mean_coef1, t, x_0.shape) * x_0
-            + extract_into_tensor(self.posterior_mean_coef2, t, x_t.shape) * x_t
-        )
-        posterior_variance = extract_into_tensor(self.posterior_variance, t, x_t.shape)
-        posterior_log_variance_clipped = extract_into_tensor(
-            self.posterior_log_variance_clipped, t, x_t.shape
-        )
-        return posterior_mean, posterior_variance, posterior_log_variance_clipped
-
-    @torch.no_grad()
-    def p_mean_variance(self, x_t, t):
-        """
-        Calculates an approximation of x_0, given eps_{\theta} and based off that returns the posterior
-        distribution p_{\theta}(x_{t-1}|x_t,x_0)
-        :param x_t: x noised at timestep t
-        :param t: current timestep t
-        :return: approximated mean and variance of the posterior distribution
-        """
-        model_output = self.model(x_t, t)
-        if self.diffusion_target == DiffusionTarget.EPS:
-            x_0_predicted = (
-                extract_into_tensor(self.sqrt_recip_alphas_cumprod, t, x_t.shape) * x_t
-                - extract_into_tensor(self.sqrt_recipm1_alphas_cumprod, t, x_t.shape)
-                * model_output
-            )
-        elif self.diffusion_target == DiffusionTarget.X_0:
-            x_0_predicted = model_output
-        else:
-            raise NotImplementedError(
-                f"Diffusion Target {self.diffusion_target} is not implemented"
-            )
-
-        model_mean, posterior_variance, posterior_log_variance = self.q_posterior(
-            x_0=x_0_predicted, x_t=x_t, t=t
-        )
-        return model_mean, posterior_variance, posterior_log_variance
-
     @torch.no_grad()
     def p_sample(self, x_t, t):
         """
@@ -188,11 +147,20 @@ class LitDDPM(pl.LightningModule):
         :return: x at timestep t-1
         """
         b, *_ = x_t.shape
-        model_mean, _, model_log_variance = self.p_mean_variance(x=x_t, t=t)
-        noise = torch.randn_like(x_t)
-        # no noise when t == 0
-        nonzero_mask = (1 - (t == 0).float()).reshape(b, *((1,) * (len(x_t.shape) - 1)))
-        return model_mean + nonzero_mask * (0.5 * model_log_variance).exp() * noise
+        z = torch.rand((b,)) if t > 1 else 0
+        model_estimation = self.p_theta_model(x_t, t)
+        # Note: 1 - alpha_t = beta_t
+        x_t_minus_one = (
+            1.0
+            / self.sqrt_alphas[t]
+            * (
+                x_t
+                - (self.betas[t] / self.sqrt_one_minus_alphas_cumprod[t])
+                * model_estimation
+            )
+            + self.sqrt_betas[t] * z
+        )
+        return x_t_minus_one
 
     @torch.no_grad()
     def p_sample_loop(

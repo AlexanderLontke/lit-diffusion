@@ -14,7 +14,7 @@ from lit_diffusion.constants import (
     DIFFUSION_MODEL_CONFIG_KEY,
     P_THETA_MODEL_CONFIG_KEY,
     SAMPLING_CONFIG_KEY,
-    SAMPLING_SHAPE_CONFIG_KEY
+    SAMPLING_SHAPE_CONFIG_KEY,
 )
 
 
@@ -53,14 +53,20 @@ if __name__ == "__main__":
         class_config=config[P_THETA_MODEL_CONFIG_KEY]
     )
     # Instantiate DDPM class
-    pl_module: lit_diffusion.ddpm.lit_ddpm.LitDDPM = instantiate_python_class_from_string_config(
-        class_config=config[DIFFUSION_MODEL_CONFIG_KEY],
-        p_theta_model=p_theta_model,
+    pl_module: lit_diffusion.ddpm.lit_ddpm.LitDDPM = (
+        instantiate_python_class_from_string_config(
+            class_config=config[DIFFUSION_MODEL_CONFIG_KEY],
+            p_theta_model=p_theta_model,
+        )
     )
     # Load Module checkpoint
     checkpoint_path = args.ckpt_path
-    pl_module.load_from_checkpoint(checkpoint_path=checkpoint_path, p_theta_model=p_theta_model)
+    pl_module.load_from_checkpoint(
+        checkpoint_path=checkpoint_path, p_theta_model=p_theta_model
+    )
 
     # Sample from model
-    sampled_image = pl_module.p_sample_loop(shape=config[SAMPLING_CONFIG_KEY][SAMPLING_SHAPE_CONFIG_KEY])
+    sampled_image = pl_module.p_sample_loop(
+        shape=config[SAMPLING_CONFIG_KEY][SAMPLING_SHAPE_CONFIG_KEY]
+    )
     torch.save(sampled_image, f="./sampled_image.pt")
