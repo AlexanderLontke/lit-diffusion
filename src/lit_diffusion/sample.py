@@ -8,8 +8,14 @@ from PIL import Image
 
 import torchvision.transforms.functional as F
 
+import lit_diffusion.ddpm.lit_ddpm
 from lit_diffusion.util import instantiate_python_class_from_string_config
-from lit_diffusion.constants import DIFFUSION_MODEL_CONFIG_KEY, P_THETA_MODEL_CONFIG_KEY
+from lit_diffusion.constants import (
+    DIFFUSION_MODEL_CONFIG_KEY,
+    P_THETA_MODEL_CONFIG_KEY,
+    SAMPLING_CONFIG_KEY,
+    SAMPLING_SHAPE_CONFIG_KEY
+)
 
 
 if __name__ == "__main__":
@@ -47,7 +53,7 @@ if __name__ == "__main__":
         class_config=config[P_THETA_MODEL_CONFIG_KEY]
     )
     # Instantiate DDPM class
-    pl_module = instantiate_python_class_from_string_config(
+    pl_module: lit_diffusion.ddpm.lit_ddpm.LitDDPM = instantiate_python_class_from_string_config(
         class_config=config[DIFFUSION_MODEL_CONFIG_KEY],
         p_theta_model=p_theta_model,
     )
@@ -56,5 +62,5 @@ if __name__ == "__main__":
     pl_module.load_from_checkpoint(checkpoint_path=checkpoint_path, p_theta_model=p_theta_model)
 
     # Sample from model
-    sampled_image = pl_module.p_sample_loop()
+    sampled_image = pl_module.p_sample_loop(shape=config[SAMPLING_CONFIG_KEY][SAMPLING_SHAPE_CONFIG_KEY])
     torch.save(sampled_image, f="./sampled_image.pt")

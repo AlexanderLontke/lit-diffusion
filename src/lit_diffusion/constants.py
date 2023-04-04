@@ -14,6 +14,9 @@ DIFFUSION_MODEL_CONFIG_KEY = "diffusion_model"
 PL_TRAINER_CONFIG_KEY = "pl_trainer"
 PL_WANDB_LOGGER_CONFIG_KEY = "pl_wandb_logger"
 PL_MODEL_CHECKPOINT_CONFIG_KEY = "pl_checkpoint_callback"
+# Sampling
+SAMPLING_CONFIG_KEY = "sampling"
+SAMPLING_SHAPE_CONFIG_KEY = "shape"
 
 # Fixed config keys for python module instantiation
 STRING_PARAMS_CONFIG_KEY = "params"
