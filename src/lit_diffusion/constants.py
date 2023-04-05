@@ -18,7 +18,7 @@ PL_MODEL_CHECKPOINT_CONFIG_KEY = "pl_checkpoint_callback"
 SAMPLING_CONFIG_KEY = "sampling"
 SAMPLING_SHAPE_CONFIG_KEY = "shape"
 STRICT_CKPT_LOADING_CONFIG_KEY = "strict_ckpt_loading"
-DEVICE_CONFIG_KEY = "cuda"
+DEVICE_CONFIG_KEY = "device"
 
 # Fixed config keys for python module instantiation
 STRING_PARAMS_CONFIG_KEY = "params"
