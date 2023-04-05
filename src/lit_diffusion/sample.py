@@ -4,9 +4,6 @@ import torch
 import yaml
 
 from pathlib import Path
-from PIL import Image
-
-import torchvision.transforms.functional as F
 
 import lit_diffusion.ddpm.lit_ddpm
 from lit_diffusion.util import instantiate_python_class_from_string_config
@@ -16,6 +13,7 @@ from lit_diffusion.constants import (
     SAMPLING_CONFIG_KEY,
     SAMPLING_SHAPE_CONFIG_KEY,
     STRICT_CKPT_LOADING_CONFIG_KEY,
+    DEVICE_CONFIG_KEY,
 )
 
 
@@ -53,7 +51,7 @@ if __name__ == "__main__":
     p_theta_model = instantiate_python_class_from_string_config(
         class_config=config[P_THETA_MODEL_CONFIG_KEY]
     )
-    # Instantiate DDPM class
+    # Instantiate diffusion model class
     pl_module: lit_diffusion.ddpm.lit_ddpm.LitDDPM = (
         instantiate_python_class_from_string_config(
             class_config=config[DIFFUSION_MODEL_CONFIG_KEY],
@@ -68,7 +66,9 @@ if __name__ == "__main__":
         strict=config[SAMPLING_CONFIG_KEY][STRICT_CKPT_LOADING_CONFIG_KEY],
         p_theta_model=p_theta_model,
     )
-    print("Device after ckpt wsa loaded", pl_module.device)
+    # Load Module onto device
+    pl_module.to(torch.device(config[SAMPLING_CONFIG_KEY][DEVICE_CONFIG_KEY]))
+    print("Device after ckpt was loaded", pl_module.device)
 
     # Sample from model
     sampled_image = pl_module.p_sample_loop(
