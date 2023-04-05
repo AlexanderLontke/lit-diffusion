@@ -173,7 +173,6 @@ class LitDDPM(pl.LightningModule):
         posterior_log_variance_clipped = extract_into_tensor(
             self.posterior_log_variance_clipped, t, x_t.shape
         )
-        print("Device of Posterior mean:", posterior_mean.device)
         return posterior_mean, posterior_variance, posterior_log_variance_clipped
 
     @torch.no_grad()
