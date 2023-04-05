@@ -19,6 +19,7 @@ SAMPLING_CONFIG_KEY = "sampling"
 SAMPLING_SHAPE_CONFIG_KEY = "shape"
 STRICT_CKPT_LOADING_CONFIG_KEY = "strict_ckpt_loading"
 DEVICE_CONFIG_KEY = "device"
+BATCH_SIZE_CONFIG_KEY = "batch_size"
 
 # Fixed config keys for python module instantiation
 STRING_PARAMS_CONFIG_KEY = "params"
