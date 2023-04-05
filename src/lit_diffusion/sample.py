@@ -60,6 +60,7 @@ if __name__ == "__main__":
             p_theta_model=p_theta_model,
         )
     )
+    print("Device after being instantiated", pl_module.device)
     # Load Module checkpoint
     checkpoint_path = args.ckpt_path
     pl_module.load_from_checkpoint(
@@ -67,6 +68,7 @@ if __name__ == "__main__":
         strict=config[SAMPLING_CONFIG_KEY][STRICT_CKPT_LOADING_CONFIG_KEY],
         p_theta_model=p_theta_model,
     )
+    print("Device after ckpt wsa loaded", pl_module.device)
 
     # Sample from model
     sampled_image = pl_module.p_sample_loop(
