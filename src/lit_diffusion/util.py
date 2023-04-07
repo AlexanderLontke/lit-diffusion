@@ -16,7 +16,7 @@ _POSSIBLE_CONFIG_KEYS = [
 
 
 def instantiate_python_class_from_string_config(
-    class_config: Dict,
+    class_config: Dict, **kwargs,
 ):
     # Assert that necessary keys are contained in config
     assert isinstance(class_config, Dict), f"{class_config} is not a dictionary."
@@ -64,6 +64,7 @@ def instantiate_python_class_from_string_config(
     return getattr(module, class_name)(
         *class_args,
         **class_kwargs,
+        **kwargs,
     )
 
 
