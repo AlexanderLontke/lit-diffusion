@@ -1,3 +1,4 @@
+from pprint import pprint
 from typing import Dict
 
 from importlib import import_module
@@ -61,6 +62,8 @@ def instantiate_python_class_from_string_config(
     # Import specified module
     module = import_module(module_name)
     # Python function call of the module attribute with specified config values
+    print(f"Instantiating {class_name} with the following arguments:")
+    pprint(class_config)
     return getattr(module, class_name)(
         *class_args,
         **class_kwargs,
@@ -87,8 +90,6 @@ if __name__ == "__main__":
         ],
         PYTHON_KWARGS_CONFIG_KEY: {"b": 1},
     }
-    print(
-        instantiate_python_class_from_string_config(
-            mock_class_config,
-        ).__dict__
+    instantiate_python_class_from_string_config(
+        mock_class_config,
     )
