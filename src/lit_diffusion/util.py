@@ -1,5 +1,5 @@
 from pprint import pprint
-from typing import Dict
+from typing import Any, Dict
 
 from importlib import import_module
 
@@ -27,7 +27,7 @@ def instantiate_python_class_from_string_config(
         PYTHON_CLASS_CONFIG_KEY in class_config.keys()
     ), f"Expected key {PYTHON_CLASS_CONFIG_KEY} but got keys: {', '.join(class_config.keys())}"
 
-    def recursive_call_with_check(possible_config_dict):
+    def recursive_call_with_check(possible_config_dict: Any):
         # If a parameters is a dictionary...
         if isinstance(possible_config_dict, Dict):
             keys = set(possible_config_dict.keys())
