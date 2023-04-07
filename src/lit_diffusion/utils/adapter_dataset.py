@@ -17,7 +17,7 @@ class AdapterDataset(Dataset):
 
     def __getitem__(self, item):
         dataset_output = self._dataset[item]
-
+        print("Type:", type(dataset_output))
         # Handle single output case
         if not isinstance(dataset_output, list):
             dataset_output = [dataset_output]

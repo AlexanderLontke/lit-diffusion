@@ -102,10 +102,8 @@ class LitDDPM(pl.LightningModule):
 
     # Methods relating to approximating p_{\theta}(x_{t-1}|x_{t})
     def training_step(self, x_0):
-        print("X_0 before selection", x_0)
         if self.data_key:
             x_0 = x_0[self.data_key]
-        print("X_0 after selection", x_0)
         t = torch.randint(
             0, self.beta_schedule_steps, (x_0.shape[0],), device=self.device
         ).long()
