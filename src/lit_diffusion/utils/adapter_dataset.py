@@ -23,3 +23,6 @@ class AdapterDataset(Dataset):
             dataset_output = [dataset_output]
 
         return {str(i): dataset_output[i] for i in range(len(dataset_output))}
+
+    def __len__(self):
+        return len(self._dataset)
