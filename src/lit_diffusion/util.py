@@ -10,8 +10,7 @@ from lit_diffusion.constants import (
     INSTANTIATE_DELAY_CONFIG_KEY,
 )
 
-_POSSIBLE_CONFIG_KEYS = [
-    PYTHON_CLASS_CONFIG_KEY,
+_POSSIBLE_ARGS_CONFIG_KEYS = [
     PYTHON_ARGS_CONFIG_KEY,
     PYTHON_KWARGS_CONFIG_KEY,
     INSTANTIATE_DELAY_CONFIG_KEY,
@@ -19,7 +18,8 @@ _POSSIBLE_CONFIG_KEYS = [
 
 
 def instantiate_python_class_from_string_config(
-    class_config: Dict, **kwargs,
+    class_config: Dict,
+    **kwargs,
 ):
     # Assert that necessary keys are contained in config
     assert isinstance(class_config, Dict), f"{class_config} is not a dictionary."
@@ -37,13 +37,12 @@ def instantiate_python_class_from_string_config(
                     possible_config_dict[INSTANTIATE_DELAY_CONFIG_KEY] -= 1
                     return possible_config_dict
             # ... check if it is a valid instantiation config ...
-            if any(
-                keys == subset
-                for subset in [
-                    set(_POSSIBLE_CONFIG_KEYS[:idx])
-                    for idx in range(1, len(_POSSIBLE_CONFIG_KEYS) + 1)
-                ]
-            ):
+            valid_config_key_sets = [
+                {PYTHON_CLASS_CONFIG_KEY, *_POSSIBLE_ARGS_CONFIG_KEYS[jdx:idx]}
+                for idx in range(1, len(_POSSIBLE_ARGS_CONFIG_KEYS))
+                for jdx in range(len(_POSSIBLE_ARGS_CONFIG_KEYS)-1)
+            ]
+            if any(keys == subset for subset in valid_config_key_sets):
                 # ... and if so instantiate the python object.
                 return instantiate_python_class_from_string_config(
                     class_config=possible_config_dict
@@ -89,15 +88,13 @@ if __name__ == "__main__":
 
     mock_class_config = {
         PYTHON_CLASS_CONFIG_KEY: "lit_diffusion.util.TestClass",
-        PYTHON_ARGS_CONFIG_KEY: [
-            {
+        PYTHON_ARGS_CONFIG_KEY: [2],
+        PYTHON_KWARGS_CONFIG_KEY: {
+            "b": {
                 PYTHON_CLASS_CONFIG_KEY: "lit_diffusion.util.TestClass",
-                PYTHON_ARGS_CONFIG_KEY: [2],
-                PYTHON_KWARGS_CONFIG_KEY: {"b": 1, "c": 3},
+                PYTHON_KWARGS_CONFIG_KEY: {"a": 2, "b": 1, "c": 3},
             }
-        ],
-        PYTHON_KWARGS_CONFIG_KEY: {"b": 1},
+        },
     }
-    instantiate_python_class_from_string_config(
-        mock_class_config, c=3
-    )
+    pprint(mock_class_config)
+    instantiate_python_class_from_string_config(mock_class_config, c=3)
