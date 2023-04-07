@@ -9,7 +9,6 @@ import lit_diffusion.ddpm.lit_ddpm
 from lit_diffusion.util import instantiate_python_class_from_string_config
 from lit_diffusion.constants import (
     DIFFUSION_MODEL_CONFIG_KEY,
-    P_THETA_MODEL_CONFIG_KEY,
     SAMPLING_CONFIG_KEY,
     SAMPLING_SHAPE_CONFIG_KEY,
     STRICT_CKPT_LOADING_CONFIG_KEY,

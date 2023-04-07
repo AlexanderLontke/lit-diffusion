@@ -4,12 +4,10 @@ from enum import Enum
 # Seed
 SEED_CONFIG_KEY = "seed"
 # Data
-DATASET_TRANSFORM_CONFIG_KEY = "dataset_transform"
 TORCH_DATASET_CONFIG_KEY = "torch_dataset"
 TORCH_DATA_LOADER_CONFIG_KEY = "torch_data_loader"
 
 # Models
-P_THETA_MODEL_CONFIG_KEY = "p_theta_model"
 DIFFUSION_MODEL_CONFIG_KEY = "diffusion_model"
 # Pytorch lightning
 PL_TRAINER_CONFIG_KEY = "pl_trainer"

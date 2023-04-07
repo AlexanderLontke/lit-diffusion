@@ -14,11 +14,8 @@ from pytorch_lightning.loggers import WandbLogger
 from lit_diffusion.util import instantiate_python_class_from_string_config
 from lit_diffusion.constants import (
     SEED_CONFIG_KEY,
-    DATASET_TRANSFORM_CONFIG_KEY,
     TORCH_DATASET_CONFIG_KEY,
     TORCH_DATA_LOADER_CONFIG_KEY,
-    TORCH_DATASET_TRANSFORM_KEYWORD_CONFIG_KEY,
-    P_THETA_MODEL_CONFIG_KEY,
     DIFFUSION_MODEL_CONFIG_KEY,
     PL_TRAINER_CONFIG_KEY,
     PL_WANDB_LOGGER_CONFIG_KEY,
