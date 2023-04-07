@@ -11,7 +11,7 @@ class AdapterDataset(Dataset):
     method already returns a dictionary
     """
 
-    def __init__(self, original_dataset: Dataset, transform: Optional[nn.Module]):
+    def __init__(self, original_dataset: Dataset):
         # Instantiate dataset class
         self._dataset = original_dataset
 
