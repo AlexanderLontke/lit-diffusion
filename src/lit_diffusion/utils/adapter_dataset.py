@@ -21,7 +21,7 @@ class AdapterDataset(Dataset):
         if not isinstance(dataset_output, tuple):
             dataset_output = tuple(dataset_output)
 
-        return {str(i): dataset_output[i] for i, v in enumerate(dataset_output)}
+        return {str(i): v for i, v in enumerate(dataset_output)}
 
     def __len__(self):
         return len(self._dataset)
