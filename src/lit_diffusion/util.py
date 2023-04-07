@@ -63,7 +63,7 @@ def instantiate_python_class_from_string_config(
     module = import_module(module_name)
     # Python function call of the module attribute with specified config values
     print(f"Instantiating {class_name} with the following arguments:")
-    pprint(class_config)
+    pprint({"class_args": class_args, "class_kwargs": class_kwargs, "kwargs": kwargs})
     return getattr(module, class_name)(
         *class_args,
         **class_kwargs,
@@ -72,9 +72,10 @@ def instantiate_python_class_from_string_config(
 
 
 class TestClass:
-    def __init__(self, a, b):
+    def __init__(self, a, b, c):
         self.a = a
         self.b = b
+        self.c = c
 
 
 if __name__ == "__main__":
@@ -85,11 +86,11 @@ if __name__ == "__main__":
             {
                 PYTHON_CLASS_CONFIG_KEY: "lit_diffusion.util.TestClass",
                 PYTHON_ARGS_CONFIG_KEY: [2],
-                PYTHON_KWARGS_CONFIG_KEY: {"b": 1},
+                PYTHON_KWARGS_CONFIG_KEY: {"b": 1, "c": 3},
             }
         ],
         PYTHON_KWARGS_CONFIG_KEY: {"b": 1},
     }
     instantiate_python_class_from_string_config(
-        mock_class_config,
+        mock_class_config, c=3
     )
