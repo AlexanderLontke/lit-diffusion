@@ -48,15 +48,10 @@ if __name__ == "__main__":
         except yaml.YAMLError as exc:
             print(exc)
 
-    # Instantiate model approximating p_theta(x_{t-1}|x_t)
-    p_theta_model = instantiate_python_class_from_string_config(
-        class_config=config[P_THETA_MODEL_CONFIG_KEY]
-    )
     # Instantiate diffusion model class
     pl_module: lit_diffusion.ddpm.lit_ddpm.LitDDPM = (
         instantiate_python_class_from_string_config(
             class_config=config[DIFFUSION_MODEL_CONFIG_KEY],
-            p_theta_model=p_theta_model,
         )
     )
     # Load Module checkpoint
@@ -64,7 +59,7 @@ if __name__ == "__main__":
     pl_module.load_from_checkpoint(
         checkpoint_path=checkpoint_path,
         strict=config[SAMPLING_CONFIG_KEY][STRICT_CKPT_LOADING_CONFIG_KEY],
-        p_theta_model=p_theta_model,
+        p_theta_model=pl_module.p_theta_model,
     )
     # Load Module onto device
     pl_module.to(torch.device(config[SAMPLING_CONFIG_KEY][DEVICE_CONFIG_KEY]))

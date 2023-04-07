@@ -7,9 +7,6 @@ SEED_CONFIG_KEY = "seed"
 DATASET_TRANSFORM_CONFIG_KEY = "dataset_transform"
 TORCH_DATASET_CONFIG_KEY = "torch_dataset"
 TORCH_DATA_LOADER_CONFIG_KEY = "torch_data_loader"
-TORCH_DATASET_TRANSFORM_KEYWORD_CONFIG_KEY = (
-    "transform_keyword"  # TODO: remove in favor of recursive instantiation
-)
 
 # Models
 P_THETA_MODEL_CONFIG_KEY = "p_theta_model"
@@ -26,8 +23,9 @@ DEVICE_CONFIG_KEY = "device"
 BATCH_SIZE_CONFIG_KEY = "batch_size"
 
 # Fixed config keys for python module instantiation
-STRING_PARAMS_CONFIG_KEY = "params"
 PYTHON_CLASS_CONFIG_KEY = "module"
+PYTHON_ARGS_CONFIG_KEY = "args"
+PYTHON_KWARGS_CONFIG_KEY = "kwargs"
 
 
 # Enum for DDPM target options

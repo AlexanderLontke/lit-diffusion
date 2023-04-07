@@ -30,32 +30,18 @@ def main(config: Dict):
     # Set seed
     pl.seed_everything(config[SEED_CONFIG_KEY])
 
-    # Instantiate dataset transform if needed
-    additional_dataset_kwargs = {}
-    if hasattr(config, DATASET_TRANSFORM_CONFIG_KEY):
-        additional_dataset_kwargs[
-            TORCH_DATASET_TRANSFORM_KEYWORD_CONFIG_KEY
-        ] = instantiate_python_class_from_string_config(
-            class_config=config[DATASET_TRANSFORM_CONFIG_KEY]
-        )
-
     # Instantiate dataset
     train_dataset = instantiate_python_class_from_string_config(
         class_config=config[TORCH_DATASET_CONFIG_KEY],
-        **additional_dataset_kwargs,
     )
     # Instantiate dataloader from data set
     train_data_loader = DataLoader(
         dataset=train_dataset, **config[TORCH_DATA_LOADER_CONFIG_KEY]
     )
-    # Instantiate model approximating p_theta(x_{t-1}|x_t)
-    p_theta_model = instantiate_python_class_from_string_config(
-        class_config=config[P_THETA_MODEL_CONFIG_KEY]
-    )
-    # Instantiate DDPM class
-    ddpm_pl_module = instantiate_python_class_from_string_config(
+
+    # Instantiate di class
+    diffusion_pl_module = instantiate_python_class_from_string_config(
         class_config=config[DIFFUSION_MODEL_CONFIG_KEY],
-        p_theta_model=p_theta_model,
     )
 
     # PL-Trainer with the following features:
@@ -76,7 +62,7 @@ def main(config: Dict):
     )
     # Run training
     trainer.fit(
-        model=ddpm_pl_module,
+        model=diffusion_pl_module,
         train_dataloaders=train_data_loader,
     )
 
