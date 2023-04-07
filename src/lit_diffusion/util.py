@@ -40,7 +40,7 @@ def instantiate_python_class_from_string_config(
             valid_config_key_sets = [
                 {PYTHON_CLASS_CONFIG_KEY, *_POSSIBLE_ARGS_CONFIG_KEYS[jdx:idx]}
                 for idx in range(1, len(_POSSIBLE_ARGS_CONFIG_KEYS))
-                for jdx in range(len(_POSSIBLE_ARGS_CONFIG_KEYS)-1)
+                for jdx in range(len(_POSSIBLE_ARGS_CONFIG_KEYS) - 1)
             ]
             if any(keys == subset for subset in valid_config_key_sets):
                 # ... and if so instantiate the python object.

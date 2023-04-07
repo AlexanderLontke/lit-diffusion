@@ -17,12 +17,11 @@ class AdapterDataset(Dataset):
 
     def __getitem__(self, item):
         dataset_output = self._dataset[item]
-        print("Type:", type(dataset_output))
         # Handle single output case
-        if not isinstance(dataset_output, list):
-            dataset_output = [dataset_output]
+        if not isinstance(dataset_output, tuple):
+            dataset_output = tuple(dataset_output)
 
-        return {str(i): dataset_output[i] for i in range(len(dataset_output))}
+        return {str(i): dataset_output[i] for i, v in enumerate(dataset_output)}
 
     def __len__(self):
         return len(self._dataset)
