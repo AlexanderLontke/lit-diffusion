@@ -7,6 +7,10 @@ SEED_CONFIG_KEY = "seed"
 DATASET_TRANSFORM_CONFIG_KEY = "dataset_transform"
 TORCH_DATASET_CONFIG_KEY = "torch_dataset"
 TORCH_DATA_LOADER_CONFIG_KEY = "torch_data_loader"
+TORCH_DATASET_TRANSFORM_KEYWORD_CONFIG_KEY = (
+    "transform_keyword"  # TODO: remove in favor of recursive instantiation
+)
+
 # Models
 P_THETA_MODEL_CONFIG_KEY = "p_theta_model"
 DIFFUSION_MODEL_CONFIG_KEY = "diffusion_model"

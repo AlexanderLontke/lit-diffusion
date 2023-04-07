@@ -18,8 +18,10 @@ from lit_diffusion.constants import (
 
 # Beta Schedule
 from lit_diffusion.ddpm.beta_schedule import make_beta_schedule
+
 # L2 Loss
 from lit_diffusion.losses.l2_loss import L2Loss
+
 
 class LitDDPM(pl.LightningModule):
     def __init__(

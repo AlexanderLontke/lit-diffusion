@@ -16,6 +16,26 @@ def instantiate_python_class_from_string_config(
     assert (
         PYTHON_CLASS_CONFIG_KEY in class_config.keys()
     ), f"Expected key {PYTHON_CLASS_CONFIG_KEY} but got keys: {', '.join(class_config.keys())}"
+
+    # Recursively instantiate any further required python objects
+    class_kwargs = class_config.get(STRING_PARAMS_CONFIG_KEY, dict())
+    for k, v in class_kwargs.items():
+        # If a parameters is a dictionary...
+        if isinstance(v, Dict):
+            keys = v.keys()
+            # ... check if it is a valid instantiation config ...
+            if (len(keys) < 2 and PYTHON_CLASS_CONFIG_KEY in keys) or (
+                len(keys) < 3
+                and all(
+                    k in keys
+                    for k in [PYTHON_CLASS_CONFIG_KEY, STRING_PARAMS_CONFIG_KEY]
+                )
+            ):
+                # ... and if so instantiate the python object.
+                class_kwargs[k] = instantiate_python_class_from_string_config(
+                    class_config=v
+                )
+
     # Get module and class names
     module_full_name: str = class_config[PYTHON_CLASS_CONFIG_KEY]
     module_sub_names = module_full_name.split(".")
@@ -23,9 +43,9 @@ def instantiate_python_class_from_string_config(
     class_name = module_sub_names[-1]
     # Import necessary module
     module = import_module(module_name)
-    # Instantiate class with config values
+    # Python function call of the module attribute with specified config values
     return getattr(module, class_name)(
-        **class_config.get(STRING_PARAMS_CONFIG_KEY, dict()),
+        **class_kwargs,
         **additional_kwargs,
     )
 

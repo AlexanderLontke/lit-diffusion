@@ -17,6 +17,7 @@ from lit_diffusion.constants import (
     DATASET_TRANSFORM_CONFIG_KEY,
     TORCH_DATASET_CONFIG_KEY,
     TORCH_DATA_LOADER_CONFIG_KEY,
+    TORCH_DATASET_TRANSFORM_KEYWORD_CONFIG_KEY,
     P_THETA_MODEL_CONFIG_KEY,
     DIFFUSION_MODEL_CONFIG_KEY,
     PL_TRAINER_CONFIG_KEY,
@@ -29,14 +30,19 @@ def main(config: Dict):
     # Set seed
     pl.seed_everything(config[SEED_CONFIG_KEY])
 
-    # Instantiate dataset Transform
-    dataset_transform = instantiate_python_class_from_string_config(
-        class_config=config[DATASET_TRANSFORM_CONFIG_KEY]
-    )
+    # Instantiate dataset transform if needed
+    additional_dataset_kwargs = {}
+    if hasattr(config, DATASET_TRANSFORM_CONFIG_KEY):
+        additional_dataset_kwargs[
+            TORCH_DATASET_TRANSFORM_KEYWORD_CONFIG_KEY
+        ] = instantiate_python_class_from_string_config(
+            class_config=config[DATASET_TRANSFORM_CONFIG_KEY]
+        )
 
     # Instantiate dataset
     train_dataset = instantiate_python_class_from_string_config(
-        class_config=config[TORCH_DATASET_CONFIG_KEY], transform=dataset_transform
+        class_config=config[TORCH_DATASET_CONFIG_KEY],
+        **additional_dataset_kwargs,
     )
     # Instantiate dataloader from data set
     train_data_loader = DataLoader(
