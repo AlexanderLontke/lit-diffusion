@@ -24,6 +24,7 @@ BATCH_SIZE_CONFIG_KEY = "batch_size"
 PYTHON_CLASS_CONFIG_KEY = "module"
 PYTHON_ARGS_CONFIG_KEY = "args"
 PYTHON_KWARGS_CONFIG_KEY = "kwargs"
+INSTANTIATE_DELAY_CONFIG_KEY = "delay"
 
 
 # Enum for DDPM target options

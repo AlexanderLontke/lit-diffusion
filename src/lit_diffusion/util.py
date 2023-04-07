@@ -7,12 +7,14 @@ from lit_diffusion.constants import (
     PYTHON_CLASS_CONFIG_KEY,
     PYTHON_ARGS_CONFIG_KEY,
     PYTHON_KWARGS_CONFIG_KEY,
+    INSTANTIATE_DELAY_CONFIG_KEY,
 )
 
 _POSSIBLE_CONFIG_KEYS = [
     PYTHON_CLASS_CONFIG_KEY,
     PYTHON_ARGS_CONFIG_KEY,
     PYTHON_KWARGS_CONFIG_KEY,
+    INSTANTIATE_DELAY_CONFIG_KEY,
 ]
 
 
@@ -29,6 +31,11 @@ def instantiate_python_class_from_string_config(
         # If a parameters is a dictionary...
         if isinstance(possible_config_dict, Dict):
             keys = set(possible_config_dict.keys())
+            # ... delay instantiation to a later call if desired ...
+            if INSTANTIATE_DELAY_CONFIG_KEY in keys:
+                if possible_config_dict[INSTANTIATE_DELAY_CONFIG_KEY] > 0:
+                    possible_config_dict[INSTANTIATE_DELAY_CONFIG_KEY] -= 1
+                    return possible_config_dict
             # ... check if it is a valid instantiation config ...
             if any(
                 keys == subset
