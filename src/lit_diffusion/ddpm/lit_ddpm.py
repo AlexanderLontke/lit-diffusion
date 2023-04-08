@@ -33,13 +33,18 @@ class LitDDPM(pl.LightningModule):
         beta_schedule_linear_start: float,
         beta_schedule_linear_end: float,
         learning_rate: float,
-        data_key: Optional[str] = None,
+        data_key: str,
+        p_theta_model_call_timestep_key: Optional[str],
+        auxiliary_p_theta_model_input: Optional[Dict] = None,
         learning_rate_scheduler_config: Optional[Dict] = None,
     ):
         super().__init__()
         self.save_hyperparameters(ignore=["p_theta_model"])
+        # P_theta model
         self.p_theta_model = p_theta_model
         self.diffusion_target = DiffusionTarget(diffusion_target)
+        self.p_theta_model_call_timestep_key = p_theta_model_call_timestep_key
+        self.auxiliary_p_theta_model_input = auxiliary_p_theta_model_input
 
         # Fix beta schedule
         self.beta_schedule_steps = beta_schedule_steps
@@ -101,13 +106,22 @@ class LitDDPM(pl.LightningModule):
         self.data_key = data_key
 
     # Methods relating to approximating p_{\theta}(x_{t-1}|x_{t})
-    def training_step(self, x_0):
-        if self.data_key:
-            x_0 = x_0[self.data_key]
+    def training_step(self, batch):
+        # Get data sample
+        x_0 = batch[self.data_key]
+        # Determine any further required inputs from the data set
+        model_kwargs = {}
+        if self.auxiliary_p_theta_model_input:
+            model_kwargs = {
+                model_kwarg: batch[data_key]
+                for model_kwarg, data_key in self.auxiliary_p_theta_model_input.items()
+            }
+
+        # Randomly sample current time step
         t = torch.randint(
             0, self.beta_schedule_steps, (x_0.shape[0],), device=self.device
         ).long()
-        loss = self.p_loss(x_0=x_0, t=t)
+        loss = self.p_loss(x_0=x_0, t=t, **model_kwargs)
         self.log(
             TRAINING_LOSS_METRIC_KEY,
             loss,
@@ -116,7 +130,15 @@ class LitDDPM(pl.LightningModule):
         )
         return loss
 
-    def p_loss(self, x_0, t):
+    def call_p_theta_model(self, x_t, t, **model_kwargs):
+        # If an argument for the timestep exists in the model forward call include it in the
+        # key word arguments
+        if self.p_theta_model_call_timestep_key:
+            model_kwargs[self.p_theta_model_call_timestep_key] = t
+        # Call the p_theta model's forward method with all necessary arguments and return the result
+        return self.p_theta_model(x_t, **model_kwargs)
+
+    def p_loss(self, x_0, t, **model_kwargs):
         """
         Calculates the variational lower bound loss of p_{\theta}(x_{t-1}|x_{t}) based on the simplified
         difference between the distribution q(x_{t}|x_{t+1}) and p_{\theta}(x_{t}|x_{t+1})
@@ -128,7 +150,7 @@ class LitDDPM(pl.LightningModule):
             x_0=x_0,
             t=t,
         )
-        model_x = self.p_theta_model(noised_x, t)
+        model_x = self.call_p_theta_model(x_t=noised_x, t=t, **model_kwargs)
 
         # Determine target
         if self.diffusion_target == DiffusionTarget.X_0:
@@ -140,8 +162,7 @@ class LitDDPM(pl.LightningModule):
                 f"Diffusion target {self.diffusion_target} not supported"
             )
 
-        loss_t_simple = self.loss(model_x, target)
-        return loss_t_simple
+        return self.loss(model_x, target)
 
     def q_sample(self, x_0, t):
         """
@@ -179,7 +200,7 @@ class LitDDPM(pl.LightningModule):
         return posterior_mean, posterior_variance, posterior_log_variance_clipped
 
     @torch.no_grad()
-    def p_mean_variance(self, x_t, t):
+    def p_mean_variance(self, x_t, t, **model_kwargs):
         """
         Calculates an approximation of x_0, given eps_{\theta} and based off that returns the posterior
         distribution p_{\theta}(x_{t-1}|x_t,x_0)
@@ -187,7 +208,7 @@ class LitDDPM(pl.LightningModule):
         :param t: current timestep t
         :return: approximated mean and variance of the posterior distribution
         """
-        model_output = self.p_theta_model(x_t, t)
+        model_output = self.call_p_theta_model(x_t=x_t, t=t, **model_kwargs)
         if self.diffusion_target == DiffusionTarget.EPS:
             x_0_predicted = (
                 extract_into_tensor(self.sqrt_recip_alphas_cumprod, t, x_t.shape) * x_t
@@ -207,7 +228,7 @@ class LitDDPM(pl.LightningModule):
         return model_mean, posterior_variance, posterior_log_variance
 
     @torch.no_grad()
-    def p_sample(self, x_t, t):
+    def p_sample(self, x_t, t, **model_kwargs):
         """
         Method implementing one DDPM sampling step
         :param x_t: sample at current timestep
@@ -215,7 +236,7 @@ class LitDDPM(pl.LightningModule):
         :return: x at timestep t-1
         """
         b, *_ = x_t.shape
-        model_mean, _, model_log_variance = self.p_mean_variance(x_t=x_t, t=t)
+        model_mean, _, model_log_variance = self.p_mean_variance(x_t=x_t, t=t, **model_kwargs)
         noise = torch.randn_like(x_t)
         # no noise when t == 0
         nonzero_mask = (1 - (t == 0).float()).reshape(b, *((1,) * (len(x_t.shape) - 1)))
@@ -223,7 +244,7 @@ class LitDDPM(pl.LightningModule):
 
     @torch.no_grad()
     def p_sample_loop(
-        self, shape, starting_noise: Optional[torch.Tensor] = None, batch_size: int = 1
+        self, shape, starting_noise: Optional[torch.Tensor] = None, batch_size: int = 1, **model_kwargs
     ):
         x_t = default(
             starting_noise,
@@ -242,6 +263,7 @@ class LitDDPM(pl.LightningModule):
                     device=self.device,
                     dtype=torch.long,
                 ),
+                **model_kwargs
             )
         return x_t
 
