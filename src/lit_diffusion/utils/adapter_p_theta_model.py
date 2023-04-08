@@ -8,7 +8,7 @@ class AdapterPThetaModel(nn.Module):
     def __init__(
         self,
         original_p_theta_model: nn.Module,
-        p_theta_model_output_index: int,
+        p_theta_model_output_index: int = 0,
         p_theta_model_call_timestep_key: Optional[str] = None,
     ):
         super().__init__()
@@ -23,8 +23,4 @@ class AdapterPThetaModel(nn.Module):
         if self.p_theta_model_call_timestep_key:
             kwargs[self.p_theta_model_call_timestep_key] = t
         # Call the p_theta model's forward method with all necessary arguments and return the result
-        model_output = self.p_theta_model(x_t, *args, **kwargs)
-        if self.p_theta_model_output_index:
-            model_outputs = list(model_output)
-            return model_outputs[self.p_theta_model_output_index]
-        return model_output
+        return list(self._p_theta_model(x_t, *args, **kwargs))[self.p_theta_model_output_index]
