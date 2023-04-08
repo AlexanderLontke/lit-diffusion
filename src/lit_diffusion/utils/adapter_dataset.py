@@ -1,6 +1,3 @@
-from typing import Optional
-
-from torch import nn
 from torch.utils.data import Dataset
 
 
