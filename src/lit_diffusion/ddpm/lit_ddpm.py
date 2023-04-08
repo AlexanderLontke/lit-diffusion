@@ -34,10 +34,15 @@ class LitDDPM(pl.LightningModule):
         beta_schedule_linear_end: float,
         learning_rate: float,
         data_key: str,
-        p_theta_model_call_timestep_key: Optional[str],
+        p_theta_model_call_timestep_key: Optional[str] = None,
         auxiliary_p_theta_model_input: Optional[Dict] = None,
         learning_rate_scheduler_config: Optional[Dict] = None,
     ):
+        """
+        :param p_theta_model_call_timestep_key: String containing the key for the timestep argument of the p_theta model
+         forward call if the argument exists in the function
+        :param auxiliary_p_theta_model_input: Dictionary mapping model forward pass kwargs to data keys in batch
+        """
         super().__init__()
         self.save_hyperparameters(ignore=["p_theta_model"])
         # P_theta model
