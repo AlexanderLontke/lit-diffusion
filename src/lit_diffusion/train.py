@@ -14,8 +14,8 @@ from pytorch_lightning.loggers import WandbLogger
 from lit_diffusion.util import instantiate_python_class_from_string_config
 from lit_diffusion.constants import (
     SEED_CONFIG_KEY,
-    TORCH_DATASET_CONFIG_KEY,
-    TORCH_DATA_LOADER_CONFIG_KEY,
+    TRAIN_TORCH_DATA_LOADER_CONFIG_KEY,
+    TEST_TORCH_DATA_LOADER_CONFIG_KEY,
     DIFFUSION_MODEL_CONFIG_KEY,
     PL_TRAINER_CONFIG_KEY,
     PL_WANDB_LOGGER_CONFIG_KEY,
@@ -27,16 +27,7 @@ def main(config: Dict):
     # Set seed
     pl.seed_everything(config[SEED_CONFIG_KEY])
 
-    # Instantiate dataset
-    train_dataset = instantiate_python_class_from_string_config(
-        class_config=config[TORCH_DATASET_CONFIG_KEY],
-    )
-    # Instantiate dataloader from data set
-    train_data_loader = DataLoader(
-        dataset=train_dataset, **config[TORCH_DATA_LOADER_CONFIG_KEY]
-    )
-
-    # Instantiate di class
+    # Instantiate diffusion class
     diffusion_pl_module = instantiate_python_class_from_string_config(
         class_config=config[DIFFUSION_MODEL_CONFIG_KEY],
     )
@@ -57,10 +48,21 @@ def main(config: Dict):
             LearningRateMonitor(),
         ],
     )
+
+    # Instantiate train dataloader
+    train_dataloader = DataLoader(
+        **config[TRAIN_TORCH_DATA_LOADER_CONFIG_KEY]
+    )
+    # Instantiate validation dataloader
+    val_dataloader = DataLoader(
+        **config[TRAIN_TORCH_DATA_LOADER_CONFIG_KEY]
+    ) if TRAIN_TORCH_DATA_LOADER_CONFIG_KEY in config.keys() else None
+
     # Run training
     trainer.fit(
         model=diffusion_pl_module,
-        train_dataloaders=train_data_loader,
+        train_dataloaders=train_dataloader,
+        val_dataloaders=val_dataloader,
     )
 
 

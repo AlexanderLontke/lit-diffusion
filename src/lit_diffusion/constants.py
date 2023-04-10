@@ -4,8 +4,8 @@ from enum import Enum
 # Seed
 SEED_CONFIG_KEY = "seed"
 # Data
-TORCH_DATASET_CONFIG_KEY = "torch_dataset"
-TORCH_DATA_LOADER_CONFIG_KEY = "torch_data_loader"
+TRAIN_TORCH_DATA_LOADER_CONFIG_KEY = "train_torch_data_loader"
+TEST_TORCH_DATA_LOADER_CONFIG_KEY = "test_torch_data_loader"
 
 # Models
 DIFFUSION_MODEL_CONFIG_KEY = "diffusion_model"
@@ -36,4 +36,5 @@ class DiffusionTarget(Enum):
 
 # Metric keys
 LOGGING_TRAIN_PREFIX = "train/"
+LOGGING_VAL_PREFIX = "val/"
 TRAINING_LOSS_METRIC_KEY = "mse_loss"

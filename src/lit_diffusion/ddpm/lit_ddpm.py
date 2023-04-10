@@ -1,6 +1,7 @@
-from typing import Callable, Dict, Optional, Union
+from typing import Any, Callable, Dict, Optional, Union
 
 import numpy as np
+from pytorch_lightning.utilities.types import STEP_OUTPUT
 
 from tqdm import tqdm
 
@@ -10,7 +11,7 @@ import pytorch_lightning as pl
 
 # Util
 from lit_diffusion.util import instantiate_python_class_from_string_config
-from lit_diffusion.constants import LOGGING_TRAIN_PREFIX, TRAINING_LOSS_METRIC_KEY
+from lit_diffusion.constants import LOGGING_TRAIN_PREFIX, LOGGING_VAL_PREFIX, TRAINING_LOSS_METRIC_KEY
 from lit_diffusion.ddpm.util import extract_into_tensor, default
 from lit_diffusion.constants import (
     DiffusionTarget,
@@ -34,6 +35,7 @@ class LitDDPM(pl.LightningModule):
         auxiliary_p_theta_model_input: Optional[Dict] = None,
         learning_rate_scheduler_config: Optional[Dict] = None,
         training_metrics: Optional[Dict[str, Callable]] = None,
+        validation_metrics: Optional[Dict[str, Callable]] = None,
     ):
         """
         :param auxiliary_p_theta_model_input: Dictionary mapping model forward pass kwargs to data keys in batch
@@ -99,6 +101,7 @@ class LitDDPM(pl.LightningModule):
 
         # Setup metrics
         self.training_metrics = training_metrics
+        self.validation_metrics = validation_metrics
 
         # Setup learning and scheduler
         self.learning_rate = learning_rate
@@ -108,7 +111,15 @@ class LitDDPM(pl.LightningModule):
         self.data_key = data_key
 
     # Methods relating to approximating p_{\theta}(x_{t-1}|x_{t})
-    def training_step(self, batch):
+    def training_step(self, batch) -> STEP_OUTPUT:
+        # Apply Model
+        return self.train_val_step(
+            batch=batch,
+            metrics_dict=self.training_metrics,
+            logging_prefix=LOGGING_TRAIN_PREFIX,
+        )
+
+    def train_val_step(self, batch, metrics_dict: Dict[str, Callable], logging_prefix: str):
         # Get data sample
         x_0 = batch[self.data_key]
         # Determine any further required inputs from the data set
@@ -128,7 +139,7 @@ class LitDDPM(pl.LightningModule):
         # Log trainings loss
         batch_size, *_ = batch.shape
         self.log(
-            LOGGING_TRAIN_PREFIX + TRAINING_LOSS_METRIC_KEY,
+            logging_prefix + TRAINING_LOSS_METRIC_KEY,
             loss,
             prog_bar=True,
             on_epoch=True,
@@ -136,9 +147,9 @@ class LitDDPM(pl.LightningModule):
         )
 
         # Log any additional metrics
-        for metric_name, metric_function in self.training_metrics.items():
+        for metric_name, metric_function in metrics_dict.items():
             self.log(
-                name=metric_name,
+                name=logging_prefix + metric_name,
                 value=metric_function(model_x, target),
                 on_epoch=True,
                 batch_size=batch_size,
@@ -186,6 +197,16 @@ class LitDDPM(pl.LightningModule):
             * epsilon_noise
         )
         return noised_x, epsilon_noise
+
+    @torch.no_grad()
+    def validation_step(self, batch, *args: Any, **kwargs: Any) -> Optional[STEP_OUTPUT]:
+        # Apply Model
+        self.train_val_step(
+            batch=batch,
+            metrics_dict=self.validation_metrics,
+            logging_prefix=LOGGING_VAL_PREFIX,
+        )
+        return None
 
     # Methods related to sampling from the distribution p_{\theta}(x_{t-1}|x_{t})
     def q_posterior(self, x_0, x_t, t):
