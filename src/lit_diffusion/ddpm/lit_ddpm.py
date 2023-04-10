@@ -119,7 +119,7 @@ class LitDDPM(pl.LightningModule):
             logging_prefix=LOGGING_TRAIN_PREFIX,
         )
 
-    def train_val_step(self, batch, metrics_dict: Dict[str, Callable], logging_prefix: str):
+    def train_val_step(self, batch, metrics_dict: Optional[Dict[str, Callable]], logging_prefix: str):
         # Get data sample
         x_0 = batch[self.data_key]
         # Determine any further required inputs from the data set
@@ -147,13 +147,14 @@ class LitDDPM(pl.LightningModule):
         )
 
         # Log any additional metrics
-        for metric_name, metric_function in metrics_dict.items():
-            self.log(
-                name=logging_prefix + metric_name,
-                value=metric_function(model_x, target),
-                on_epoch=True,
-                batch_size=batch_size,
-            )
+        if metrics_dict:
+            for metric_name, metric_function in metrics_dict.items():
+                self.log(
+                    name=logging_prefix + metric_name,
+                    value=metric_function(model_x, target),
+                    on_epoch=True,
+                    batch_size=batch_size,
+                )
         return loss
 
     def p_loss(self, x_0, t, **model_kwargs):
