@@ -1,5 +1,6 @@
 from pprint import pprint
 from typing import Any, Dict
+from inspect import isfunction
 
 from importlib import import_module
 
@@ -77,10 +78,17 @@ def instantiate_python_class_from_string_config(
     class_name = module_sub_names[-1]
     # Import specified module
     module = import_module(module_name)
+    object_to_instantiate = getattr(module, class_name)
+
+    # If the object is a function no further actions are necessary
+    if isfunction(object_to_instantiate):
+        print(f"Instantiating function: {class_name}")
+        return object_to_instantiate
+
     # Python function call of the module attribute with specified config values
     print(f"Instantiating {class_name} with the following arguments:")
     pprint({"class_args": class_args, "class_kwargs": class_kwargs, "kwargs": kwargs})
-    return getattr(module, class_name)(
+    return object_to_instantiate(
         *class_args,
         **class_kwargs,
         **kwargs,
