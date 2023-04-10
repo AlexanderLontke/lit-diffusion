@@ -10,12 +10,14 @@ class AdapterPThetaModel(nn.Module):
         original_p_theta_model: nn.Module,
         p_theta_model_output_index: int = 0,
         p_theta_model_call_timestep_key: Optional[str] = None,
+        output_mask_key: Optional[str] = None,
     ):
         super().__init__()
         # Store p_theta_model
         self._p_theta_model = original_p_theta_model
         self.p_theta_model_call_timestep_key = p_theta_model_call_timestep_key
         self.p_theta_model_output_index = p_theta_model_output_index
+        self.output_mask_key = output_mask_key
 
     def forward(self, x_t: torch.Tensor, t: torch.Tensor, *args, **kwargs):
         # If an argument for the timestep exists in the model forward call include it in the
