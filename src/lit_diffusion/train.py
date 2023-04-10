@@ -15,7 +15,7 @@ from lit_diffusion.util import instantiate_python_class_from_string_config
 from lit_diffusion.constants import (
     SEED_CONFIG_KEY,
     TRAIN_TORCH_DATA_LOADER_CONFIG_KEY,
-    TEST_TORCH_DATA_LOADER_CONFIG_KEY,
+    VALIDATION_TORCH_DATA_LOADER_CONFIG_KEY,
     DIFFUSION_MODEL_CONFIG_KEY,
     PL_TRAINER_CONFIG_KEY,
     PL_WANDB_LOGGER_CONFIG_KEY,
@@ -55,8 +55,8 @@ def main(config: Dict):
     )
     # Instantiate validation dataloader
     val_dataloader = DataLoader(
-        **config[TRAIN_TORCH_DATA_LOADER_CONFIG_KEY]
-    ) if TRAIN_TORCH_DATA_LOADER_CONFIG_KEY in config.keys() else None
+        **config[VALIDATION_TORCH_DATA_LOADER_CONFIG_KEY]
+    ) if VALIDATION_TORCH_DATA_LOADER_CONFIG_KEY in config.keys() else None
 
     # Run training
     trainer.fit(

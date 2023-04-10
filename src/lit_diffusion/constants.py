@@ -5,7 +5,7 @@ from enum import Enum
 SEED_CONFIG_KEY = "seed"
 # Data
 TRAIN_TORCH_DATA_LOADER_CONFIG_KEY = "train_torch_data_loader"
-TEST_TORCH_DATA_LOADER_CONFIG_KEY = "test_torch_data_loader"
+VALIDATION_TORCH_DATA_LOADER_CONFIG_KEY = "validation_torch_data_loader"
 
 # Models
 DIFFUSION_MODEL_CONFIG_KEY = "diffusion_model"
