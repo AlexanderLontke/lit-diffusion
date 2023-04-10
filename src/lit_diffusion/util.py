@@ -16,7 +16,6 @@ _POSSIBLE_ARGS_CONFIG_KEYS = [
     PYTHON_ARGS_CONFIG_KEY,
     PYTHON_KWARGS_CONFIG_KEY,
     INSTANTIATE_DELAY_CONFIG_KEY,
-    INSTANTIATE_DELAY_CONFIG_KEY,
     CALL_FUNCTION_UPON_INSTANTIATION_KEY,
 ]
 
@@ -41,11 +40,10 @@ def instantiate_python_class_from_string_config(
                     possible_config_dict[INSTANTIATE_DELAY_CONFIG_KEY] -= 1
                     return possible_config_dict
             # ... check if it is a valid instantiation config ...
-            valid_config_key_sets = [
-                {PYTHON_CLASS_CONFIG_KEY, *_POSSIBLE_ARGS_CONFIG_KEYS[jdx:idx]}
-                for idx in range(1, len(_POSSIBLE_ARGS_CONFIG_KEYS))
-                for jdx in range(len(_POSSIBLE_ARGS_CONFIG_KEYS) - 1)
-            ]
+            valid_config_key_sets = [{PYTHON_CLASS_CONFIG_KEY}]
+            for idx in range(len(_POSSIBLE_ARGS_CONFIG_KEYS)):
+                for jdx in reversed(range(idx + 1, len(_POSSIBLE_ARGS_CONFIG_KEYS) + 1)):
+                    valid_config_key_sets.append({PYTHON_CLASS_CONFIG_KEY, *_POSSIBLE_ARGS_CONFIG_KEYS[idx:jdx]})
             if any(keys == subset for subset in valid_config_key_sets):
                 # ... and if so instantiate the python object.
                 return instantiate_python_class_from_string_config(
