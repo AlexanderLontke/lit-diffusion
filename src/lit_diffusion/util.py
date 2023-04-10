@@ -48,6 +48,16 @@ def instantiate_python_class_from_string_config(
                     class_config=possible_config_dict
                 )
 
+            # Check all levels of dict
+            for config_keys, config_values in possible_config_dict.items():
+                possible_config_dict[config_keys] = recursive_call_with_check(
+                    config_values
+                )
+        # If parameters is a list
+        if isinstance(possible_config_dict, list):
+            # check all entries of list
+            for idx, config_values in enumerate(possible_config_dict):
+                possible_config_dict[idx] = recursive_call_with_check(config_values)
         return possible_config_dict
 
     # Recursively instantiate any further required python objects
@@ -85,14 +95,24 @@ class TestClass:
 
 
 if __name__ == "__main__":
-
     mock_class_config = {
         PYTHON_CLASS_CONFIG_KEY: "lit_diffusion.util.TestClass",
         PYTHON_ARGS_CONFIG_KEY: [2],
         PYTHON_KWARGS_CONFIG_KEY: {
             "b": {
                 PYTHON_CLASS_CONFIG_KEY: "lit_diffusion.util.TestClass",
-                PYTHON_KWARGS_CONFIG_KEY: {"a": 2, "b": 1, "c": 3},
+                PYTHON_KWARGS_CONFIG_KEY: {
+                    "a": {
+                        "a": {
+                            PYTHON_CLASS_CONFIG_KEY: "lit_diffusion.util.TestClass",
+                            PYTHON_KWARGS_CONFIG_KEY: {"a": 1, "b": 2, "c": 3},
+                        },
+                        "b": 2,
+                        "c": 3,
+                    },
+                    "b": 1,
+                    "c": 3,
+                },
             }
         },
     }

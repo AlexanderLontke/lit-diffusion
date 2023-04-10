@@ -24,7 +24,9 @@ class AdapterPThetaModel(nn.Module):
             kwargs[self.p_theta_model_call_timestep_key] = t
 
         # Call the p_theta model's forward method with all necessary arguments and return the result
-        model_output = list(self._p_theta_model(x_t, *args, **kwargs))[self.p_theta_model_output_index]
+        model_output = list(self._p_theta_model(x_t, *args, **kwargs))[
+            self.p_theta_model_output_index
+        ]
 
         # Mask output if mask is available
         if self.output_mask_key:
