@@ -85,7 +85,7 @@ def instantiate_python_class_from_string_config(
     if isfunction(object_to_instantiate):
         print(f"Instantiating function: {class_name}")
         # Give user the option to call it upon instantiation
-        if class_config.get(CALL_FUNCTION_UPON_INSTANTIATION_KEY, False):
+        if class_config.get(CALL_FUNCTION_UPON_INSTANTIATION_KEY, True):
             object_to_instantiate = object_to_instantiate(
                 *class_args,
                 **class_kwargs,
