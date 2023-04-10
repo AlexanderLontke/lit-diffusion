@@ -131,13 +131,13 @@ class LitDDPM(pl.LightningModule):
             }
 
         # Randomly sample current time step
+        batch_size, *_ = x_0.shape
         t = torch.randint(
-            0, self.beta_schedule_steps, (x_0.shape[0],), device=self.device
+            0, self.beta_schedule_steps, (batch_size,), device=self.device
         ).long()
         loss, model_x, target = self.p_loss(x_0=x_0, t=t, **model_kwargs)
 
         # Log trainings loss
-        batch_size, *_ = batch.shape
         self.log(
             logging_prefix + TRAINING_LOSS_METRIC_KEY,
             loss,
