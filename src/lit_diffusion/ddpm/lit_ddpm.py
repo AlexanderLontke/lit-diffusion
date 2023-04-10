@@ -126,11 +126,13 @@ class LitDDPM(pl.LightningModule):
         loss, model_x, target = self.p_loss(x_0=x_0, t=t, **model_kwargs)
 
         # Log trainings loss
+        batch_size, *_ = batch.shape
         self.log(
             LOGGING_TRAIN_PREFIX + TRAINING_LOSS_METRIC_KEY,
             loss,
             prog_bar=True,
             on_epoch=True,
+            batch_size=batch_size,
         )
 
         # Log any additional metrics
@@ -139,6 +141,7 @@ class LitDDPM(pl.LightningModule):
                 name=metric_name,
                 value=metric_function(model_x, target),
                 on_epoch=True,
+                batch_size=batch_size,
             )
         return loss
 
