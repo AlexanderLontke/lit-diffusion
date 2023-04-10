@@ -1,4 +1,4 @@
-from typing import Dict, Optional, Union
+from typing import Callable, Dict, Optional, Union
 
 import numpy as np
 
@@ -10,7 +10,7 @@ import pytorch_lightning as pl
 
 # Util
 from lit_diffusion.util import instantiate_python_class_from_string_config
-from lit_diffusion.constants import TRAINING_LOSS_METRIC_KEY
+from lit_diffusion.constants import LOGGING_TRAIN_PREFIX, TRAINING_LOSS_METRIC_KEY
 from lit_diffusion.ddpm.util import extract_into_tensor, default
 from lit_diffusion.constants import (
     DiffusionTarget,
@@ -33,6 +33,7 @@ class LitDDPM(pl.LightningModule):
         data_key: str,
         auxiliary_p_theta_model_input: Optional[Dict] = None,
         learning_rate_scheduler_config: Optional[Dict] = None,
+        training_metrics: Optional[Dict[str, Callable]] = None,
     ):
         """
         :param auxiliary_p_theta_model_input: Dictionary mapping model forward pass kwargs to data keys in batch
@@ -96,6 +97,9 @@ class LitDDPM(pl.LightningModule):
         # Setup loss
         self.loss = nn.MSELoss()  # Equivalent to L2 loss
 
+        # Setup metrics
+        self.training_metrics = training_metrics
+
         # Setup learning and scheduler
         self.learning_rate = learning_rate
         self.learning_rate_scheduler_config = learning_rate_scheduler_config
@@ -119,13 +123,23 @@ class LitDDPM(pl.LightningModule):
         t = torch.randint(
             0, self.beta_schedule_steps, (x_0.shape[0],), device=self.device
         ).long()
-        loss = self.p_loss(x_0=x_0, t=t, **model_kwargs)
+        loss, model_x, target = self.p_loss(x_0=x_0, t=t, **model_kwargs)
+
+        # Log trainings loss
         self.log(
-            TRAINING_LOSS_METRIC_KEY,
+            LOGGING_TRAIN_PREFIX + TRAINING_LOSS_METRIC_KEY,
             loss,
             prog_bar=True,
             on_epoch=True,
         )
+
+        # Log any additional metrics
+        for metric_name, metric_function in self.training_metrics.items():
+            self.log(
+                name=metric_name,
+                value=metric_function(model_x, target),
+                on_epoch=True,
+            )
         return loss
 
     def p_loss(self, x_0, t, **model_kwargs):
@@ -152,7 +166,7 @@ class LitDDPM(pl.LightningModule):
                 f"Diffusion target {self.diffusion_target} not supported"
             )
 
-        return self.loss(model_x, target)
+        return self.loss(model_x, target), model_x, target
 
     def q_sample(self, x_0, t):
         """

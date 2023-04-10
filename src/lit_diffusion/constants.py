@@ -34,5 +34,5 @@ class DiffusionTarget(Enum):
 
 
 # Metric keys
-_TRAIN_PREFIX = "train/"
-TRAINING_LOSS_METRIC_KEY = _TRAIN_PREFIX + "mse_loss"
+LOGGING_TRAIN_PREFIX = "train/"
+TRAINING_LOSS_METRIC_KEY = "mse_loss"
