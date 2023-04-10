@@ -135,8 +135,6 @@ class LitDDPM(pl.LightningModule):
 
         # Log any additional metrics
         for metric_name, metric_function in self.training_metrics.items():
-            print("model_x", model_x.shape)
-            print("target", target.shape)
             self.log(
                 name=metric_name,
                 value=metric_function(model_x, target),
