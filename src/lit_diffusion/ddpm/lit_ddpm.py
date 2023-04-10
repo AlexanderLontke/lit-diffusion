@@ -11,7 +11,11 @@ import pytorch_lightning as pl
 
 # Util
 from lit_diffusion.util import instantiate_python_class_from_string_config
-from lit_diffusion.constants import LOGGING_TRAIN_PREFIX, LOGGING_VAL_PREFIX, TRAINING_LOSS_METRIC_KEY
+from lit_diffusion.constants import (
+    LOGGING_TRAIN_PREFIX,
+    LOGGING_VAL_PREFIX,
+    TRAINING_LOSS_METRIC_KEY,
+)
 from lit_diffusion.ddpm.util import extract_into_tensor, default
 from lit_diffusion.constants import (
     DiffusionTarget,
@@ -119,7 +123,9 @@ class LitDDPM(pl.LightningModule):
             logging_prefix=LOGGING_TRAIN_PREFIX,
         )
 
-    def train_val_step(self, batch, metrics_dict: Optional[Dict[str, Callable]], logging_prefix: str):
+    def train_val_step(
+        self, batch, metrics_dict: Optional[Dict[str, Callable]], logging_prefix: str
+    ):
         # Get data sample
         x_0 = batch[self.data_key]
         # Determine any further required inputs from the data set
@@ -200,7 +206,9 @@ class LitDDPM(pl.LightningModule):
         return noised_x, epsilon_noise
 
     @torch.no_grad()
-    def validation_step(self, batch, *args: Any, **kwargs: Any) -> Optional[STEP_OUTPUT]:
+    def validation_step(
+        self, batch, *args: Any, **kwargs: Any
+    ) -> Optional[STEP_OUTPUT]:
         # Apply Model
         self.train_val_step(
             batch=batch,

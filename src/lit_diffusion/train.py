@@ -51,9 +51,13 @@ def main(config: Dict):
         class_config=config[TRAIN_TORCH_DATA_LOADER_CONFIG_KEY]
     )
     # Instantiate validation dataloader
-    val_dataloader = instantiate_python_class_from_string_config(
-        class_config=config[VALIDATION_TORCH_DATA_LOADER_CONFIG_KEY]
-    ) if VALIDATION_TORCH_DATA_LOADER_CONFIG_KEY in config.keys() else None
+    val_dataloader = (
+        instantiate_python_class_from_string_config(
+            class_config=config[VALIDATION_TORCH_DATA_LOADER_CONFIG_KEY]
+        )
+        if VALIDATION_TORCH_DATA_LOADER_CONFIG_KEY in config.keys()
+        else None
+    )
 
     # Run training
     trainer.fit(
