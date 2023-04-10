@@ -2,9 +2,6 @@ import argparse, yaml
 from pathlib import Path
 from typing import Dict
 
-# PyTorch imports
-from torch.utils.data import DataLoader
-
 # PyTorch Lightning
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
@@ -50,12 +47,12 @@ def main(config: Dict):
     )
 
     # Instantiate train dataloader
-    train_dataloader = DataLoader(
-        **config[TRAIN_TORCH_DATA_LOADER_CONFIG_KEY]
+    train_dataloader = instantiate_python_class_from_string_config(
+        class_config=config[TRAIN_TORCH_DATA_LOADER_CONFIG_KEY]
     )
     # Instantiate validation dataloader
-    val_dataloader = DataLoader(
-        **config[VALIDATION_TORCH_DATA_LOADER_CONFIG_KEY]
+    val_dataloader = instantiate_python_class_from_string_config(
+        class_config=config[VALIDATION_TORCH_DATA_LOADER_CONFIG_KEY]
     ) if VALIDATION_TORCH_DATA_LOADER_CONFIG_KEY in config.keys() else None
 
     # Run training
