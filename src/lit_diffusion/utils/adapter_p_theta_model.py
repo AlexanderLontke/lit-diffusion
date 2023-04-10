@@ -37,4 +37,6 @@ class AdapterPThetaModel(nn.Module):
         # Mask output if mask is available
         if self.output_mask_key:
             model_output = output_mask * model_output
+
+        print(model_output)
         return model_output
