@@ -17,16 +17,23 @@ class MinMaxScaler(nn.Module):
         self.interval_max = interval_max
 
     def forward(self, x):
-        return ((x - self.minimum_value) / (self.maximum_value - self.minimum_value)) * (
-            self.interval_max - self.interval_min
-        ) + self.interval_min
+        return (
+            (x - self.minimum_value) / (self.maximum_value - self.minimum_value)
+        ) * (self.interval_max - self.interval_min) + self.interval_min
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import torch
 
     mms = MinMaxScaler(minimum_value=0, maximum_value=255)
-    sample = torch.rand(3, 120, 120,) * 255
+    sample = (
+        torch.rand(
+            3,
+            120,
+            120,
+        )
+        * 255
+    )
     print(sample)
     scaled_sample = mms(sample)
     print("Min", scaled_sample.min(), "Max:", scaled_sample.max())

@@ -14,6 +14,7 @@ from lit_diffusion.constants import (
     STRICT_CKPT_LOADING_CONFIG_KEY,
     DEVICE_CONFIG_KEY,
     BATCH_SIZE_CONFIG_KEY,
+    SAFE_INTERMEDIARIES_CONFIG_KEY,
 )
 
 
@@ -67,5 +68,8 @@ if __name__ == "__main__":
     sampled_image = pl_module.p_sample_loop(
         shape=config[SAMPLING_CONFIG_KEY][SAMPLING_SHAPE_CONFIG_KEY],
         batch_size=config[SAMPLING_CONFIG_KEY][BATCH_SIZE_CONFIG_KEY],
+        safe_intermediaries_every_n_steps=config[SAMPLING_CONFIG_KEY][
+            SAFE_INTERMEDIARIES_CONFIG_KEY
+        ],
     )
     torch.save(sampled_image, f="./sampled_images.pt")

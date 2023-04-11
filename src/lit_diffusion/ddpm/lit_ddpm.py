@@ -293,8 +293,10 @@ class LitDDPM(pl.LightningModule):
         shape,
         starting_noise: Optional[torch.Tensor] = None,
         batch_size: int = 1,
+        safe_intermediaries_every_n_steps: Optional[int] = None,
         **model_kwargs,
     ):
+        result = []
         x_t = default(
             starting_noise,
             lambda: torch.randn((batch_size, *shape), device=self.device),
@@ -304,6 +306,11 @@ class LitDDPM(pl.LightningModule):
             desc=f"DDPM sampling on device {self.device}:",
             total=self.beta_schedule_steps,
         ):
+            # If specified safe the intermediaries as well
+            if safe_intermediaries_every_n_steps:
+                if t % safe_intermediaries_every_n_steps == 0:
+                    result.append(x_t)
+            # Sample x_t based off x_{t-1}
             x_t = self.p_sample(
                 x_t=x_t,
                 t=torch.full(
@@ -314,7 +321,8 @@ class LitDDPM(pl.LightningModule):
                 ),
                 **model_kwargs,
             )
-        return x_t
+        result.append(x_t)
+        return result
 
     def configure_optimizers(self):
         """
