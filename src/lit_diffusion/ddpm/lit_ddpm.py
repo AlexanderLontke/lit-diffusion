@@ -36,6 +36,7 @@ class LitDDPM(pl.LightningModule):
         beta_schedule_linear_end: float,
         learning_rate: float,
         data_key: str,
+        clip_denoised: bool = False,
         auxiliary_p_theta_model_input: Optional[Dict] = None,
         learning_rate_scheduler_config: Optional[Dict] = None,
         training_metrics: Optional[Dict[str, Callable]] = None,
@@ -50,6 +51,9 @@ class LitDDPM(pl.LightningModule):
         self.p_theta_model = p_theta_model
         self.diffusion_target = DiffusionTarget(diffusion_target)
         self.auxiliary_p_theta_model_input = auxiliary_p_theta_model_input
+
+        # Clip during sampling
+        self.clip_denoised = clip_denoised
 
         # Fix beta schedule
         self.beta_schedule_steps = beta_schedule_steps
@@ -258,6 +262,8 @@ class LitDDPM(pl.LightningModule):
             raise NotImplementedError(
                 f"Diffusion Target {self.diffusion_target} is not implemented"
             )
+        if self.clip_denoised:
+            x_0_predicted = x_0_predicted.clamp(-1.0, 1.0)
 
         model_mean, posterior_variance, posterior_log_variance = self.q_posterior(
             x_0=x_0_predicted, x_t=x_t, t=t
