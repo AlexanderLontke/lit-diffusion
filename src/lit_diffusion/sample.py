@@ -15,6 +15,7 @@ from lit_diffusion.constants import (
     DEVICE_CONFIG_KEY,
     BATCH_SIZE_CONFIG_KEY,
     SAFE_INTERMEDIARIES_CONFIG_KEY,
+    CLIP_DENOISED_CONFIG_KEY,
 )
 
 
@@ -63,6 +64,7 @@ if __name__ == "__main__":
     )
     # Load Module onto device
     pl_module.to(torch.device(config[SAMPLING_CONFIG_KEY][DEVICE_CONFIG_KEY]))
+    pl_module.clip_denoised = config[SAMPLING_CONFIG_KEY][CLIP_DENOISED_CONFIG_KEY]
 
     # Sample from model
     sampled_image = pl_module.p_sample_loop(
@@ -72,4 +74,4 @@ if __name__ == "__main__":
             SAFE_INTERMEDIARIES_CONFIG_KEY
         ],
     )
-    torch.save(sampled_image, f="./sampled_images.pt")
+    torch.save(sampled_image, f=f"./sampled_images_clipped_{config[SAMPLING_CONFIG_KEY][CLIP_DENOISED_CONFIG_KEY]}.pt")
