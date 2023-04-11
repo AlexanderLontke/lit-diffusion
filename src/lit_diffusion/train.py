@@ -24,8 +24,8 @@ def main(config: Dict):
     # Set seed
     pl.seed_everything(config[SEED_CONFIG_KEY])
 
-    # Instantiate diffusion class
-    diffusion_pl_module = instantiate_python_class_from_string_config(
+    # Instantiate pytorch lightning module
+    pl_module = instantiate_python_class_from_string_config(
         class_config=config[DIFFUSION_MODEL_CONFIG_KEY],
     )
 
@@ -61,7 +61,7 @@ def main(config: Dict):
 
     # Run training
     trainer.fit(
-        model=diffusion_pl_module,
+        model=pl_module,
         train_dataloaders=train_dataloader,
         val_dataloaders=val_dataloader,
     )

@@ -117,13 +117,13 @@ class LitDDPM(pl.LightningModule):
     # Methods relating to approximating p_{\theta}(x_{t-1}|x_{t})
     def training_step(self, batch) -> STEP_OUTPUT:
         # Apply Model
-        return self.train_val_step(
+        return self._train_val_step(
             batch=batch,
             metrics_dict=self.training_metrics,
             logging_prefix=LOGGING_TRAIN_PREFIX,
         )
 
-    def train_val_step(
+    def _train_val_step(
         self, batch, metrics_dict: Optional[Dict[str, Callable]], logging_prefix: str
     ):
         # Get data sample
@@ -210,7 +210,7 @@ class LitDDPM(pl.LightningModule):
         self, batch, *args: Any, **kwargs: Any
     ) -> Optional[STEP_OUTPUT]:
         # Apply Model
-        self.train_val_step(
+        self._train_val_step(
             batch=batch,
             metrics_dict=self.validation_metrics,
             logging_prefix=LOGGING_VAL_PREFIX,
