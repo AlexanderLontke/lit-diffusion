@@ -8,7 +8,7 @@ from pathlib import Path
 import lit_diffusion.ddpm.lit_ddpm
 from lit_diffusion.util import instantiate_python_class_from_string_config
 from lit_diffusion.constants import (
-    DIFFUSION_MODEL_CONFIG_KEY,
+    PL_MODULE_CONFIG_KEY,
     SAMPLING_CONFIG_KEY,
     SAMPLING_SHAPE_CONFIG_KEY,
     STRICT_CKPT_LOADING_CONFIG_KEY,
@@ -52,7 +52,7 @@ if __name__ == "__main__":
     # Instantiate diffusion model class
     pl_module: lit_diffusion.ddpm.lit_ddpm.LitDDPM = (
         instantiate_python_class_from_string_config(
-            class_config=config[DIFFUSION_MODEL_CONFIG_KEY],
+            class_config=config[PL_MODULE_CONFIG_KEY],
         )
     )
     # Load Module checkpoint

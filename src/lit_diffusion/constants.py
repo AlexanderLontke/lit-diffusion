@@ -8,7 +8,7 @@ TRAIN_TORCH_DATA_LOADER_CONFIG_KEY = "train_torch_data_loader"
 VALIDATION_TORCH_DATA_LOADER_CONFIG_KEY = "validation_torch_data_loader"
 
 # Models
-DIFFUSION_MODEL_CONFIG_KEY = "diffusion_model"
+PL_MODULE_CONFIG_KEY = "pl_module"
 # Pytorch lightning
 PL_TRAINER_CONFIG_KEY = "pl_trainer"
 PL_WANDB_LOGGER_CONFIG_KEY = "pl_wandb_logger"
