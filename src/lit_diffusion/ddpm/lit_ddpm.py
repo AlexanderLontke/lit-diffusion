@@ -118,6 +118,23 @@ class LitDDPM(pl.LightningModule):
         # Data access
         self.data_key = data_key
 
+    # Methods relating to calling the de-noising model
+    def call_p_theta_model(self, batch: torch.Tensor, t: torch.Tensor):
+        # Get data sample
+        x_t = self._get_x_from_batch(batch=batch)
+        # Determine any further required inputs from the data set
+        model_kwargs = self._get_p_theta_model_kwargs_from_batch(batch=batch)
+        return self.p_theta_model(x_t, t, **model_kwargs)
+
+    def _get_p_theta_model_kwargs_from_batch(self, batch):
+        model_kwargs = {}
+        if self.auxiliary_p_theta_model_input:
+            model_kwargs = {
+                model_kwarg: batch[data_key]
+                for model_kwarg, data_key in self.auxiliary_p_theta_model_input.items()
+            }
+        return model_kwargs
+
     # Methods relating to approximating p_{\theta}(x_{t-1}|x_{t})
     def training_step(self, batch) -> STEP_OUTPUT:
         # Apply Model
@@ -133,15 +150,10 @@ class LitDDPM(pl.LightningModule):
         # Get data sample
         x_0 = batch[self.data_key]
         # Determine any further required inputs from the data set
-        model_kwargs = {}
-        if self.auxiliary_p_theta_model_input:
-            model_kwargs = {
-                model_kwarg: batch[data_key]
-                for model_kwarg, data_key in self.auxiliary_p_theta_model_input.items()
-            }
+        model_kwargs = self._get_p_theta_model_kwargs_from_batch(batch=batch)
 
         # Randomly sample current time step
-        batch_size, *_ = x_0.shape
+        batch_size, *_ = batch.shape
         t = torch.randint(
             0, self.beta_schedule_steps, (batch_size,), device=self.device
         ).long()

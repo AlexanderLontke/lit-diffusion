@@ -74,4 +74,7 @@ if __name__ == "__main__":
             SAFE_INTERMEDIARIES_CONFIG_KEY
         ],
     )
-    torch.save(sampled_image, f=f"./sampled_images_clipped_{config[SAMPLING_CONFIG_KEY][CLIP_DENOISED_CONFIG_KEY]}.pt")
+    torch.save(
+        sampled_image,
+        f=f"./sampled_images_clipped_{config[SAMPLING_CONFIG_KEY][CLIP_DENOISED_CONFIG_KEY]}.pt",
+    )

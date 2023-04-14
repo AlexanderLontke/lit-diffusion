@@ -19,7 +19,7 @@ def make_beta_schedule(
     if schedule == "quad":
         betas = (
             np.linspace(
-                linear_start ** 0.5, linear_end ** 0.5, n_timestep, dtype=np.float64
+                linear_start**0.5, linear_end**0.5, n_timestep, dtype=np.float64
             )
             ** 2
         )
