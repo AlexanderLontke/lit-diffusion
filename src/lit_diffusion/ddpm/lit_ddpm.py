@@ -119,14 +119,7 @@ class LitDDPM(pl.LightningModule):
         self.data_key = data_key
 
     # Methods relating to calling the de-noising model
-    def call_p_theta_model(self, batch: torch.Tensor, t: torch.Tensor):
-        # Get data sample
-        x_t = self._get_x_from_batch(batch=batch)
-        # Determine any further required inputs from the data set
-        model_kwargs = self._get_p_theta_model_kwargs_from_batch(batch=batch)
-        return self.p_theta_model(x_t, t, **model_kwargs)
-
-    def _get_p_theta_model_kwargs_from_batch(self, batch):
+    def get_p_theta_model_kwargs_from_batch(self, batch):
         model_kwargs = {}
         if self.auxiliary_p_theta_model_input:
             model_kwargs = {
@@ -150,7 +143,7 @@ class LitDDPM(pl.LightningModule):
         # Get data sample
         x_0 = batch[self.data_key]
         # Determine any further required inputs from the data set
-        model_kwargs = self._get_p_theta_model_kwargs_from_batch(batch=batch)
+        model_kwargs = self.get_p_theta_model_kwargs_from_batch(batch=batch)
 
         # Randomly sample current time step
         batch_size, *_ = batch.shape
