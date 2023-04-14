@@ -22,6 +22,7 @@ _POSSIBLE_ARGS_CONFIG_KEYS = [
 
 def instantiate_python_class_from_string_config(
     class_config: Dict,
+    verbose: bool = False,
     **kwargs,
 ):
     # Assert that necessary keys are contained in config
@@ -51,7 +52,7 @@ def instantiate_python_class_from_string_config(
             if any(keys == subset for subset in valid_config_key_sets):
                 # ... and if so instantiate the python object.
                 return instantiate_python_class_from_string_config(
-                    class_config=possible_config_dict
+                    class_config=possible_config_dict, verbose=verbose,
                 )
 
             # Check all levels of dict
@@ -87,7 +88,8 @@ def instantiate_python_class_from_string_config(
 
     # If the object is a function no further actions are necessary
     if isfunction(object_to_instantiate):
-        print(f"Instantiating function: {class_name}")
+        if verbose:
+            print(f"Instantiating function: {class_name}")
         # Give user the option to call it upon instantiation
         if class_config.get(CALL_FUNCTION_UPON_INSTANTIATION_KEY, True):
             object_to_instantiate = object_to_instantiate(
@@ -98,8 +100,9 @@ def instantiate_python_class_from_string_config(
         return object_to_instantiate
 
     # Python function call of the module attribute with specified config values
-    print(f"Instantiating {class_name} with the following arguments:")
-    pprint({"class_args": class_args, "class_kwargs": class_kwargs, "kwargs": kwargs})
+    if verbose:
+        print(f"Instantiating {class_name} with the following arguments:")
+        pprint({"class_args": class_args, "class_kwargs": class_kwargs, "kwargs": kwargs})
     return object_to_instantiate(
         *class_args,
         **class_kwargs,

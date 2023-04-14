@@ -11,6 +11,7 @@ from pytorch_lightning.loggers import WandbLogger
 from lit_diffusion.util import instantiate_python_class_from_string_config
 from lit_diffusion.constants import (
     SEED_CONFIG_KEY,
+    VERBOSE_INIT_CONFIG_KEY,
     TRAIN_TORCH_DATA_LOADER_CONFIG_KEY,
     VALIDATION_TORCH_DATA_LOADER_CONFIG_KEY,
     PL_MODULE_CONFIG_KEY,
@@ -23,10 +24,12 @@ from lit_diffusion.constants import (
 def main(config: Dict):
     # Set seed
     pl.seed_everything(config[SEED_CONFIG_KEY])
+    verbose_init = config.get(VERBOSE_INIT_CONFIG_KEY, False)
 
     # Instantiate pytorch lightning module
     pl_module = instantiate_python_class_from_string_config(
         class_config=config[PL_MODULE_CONFIG_KEY],
+        verbose=verbose_init,
     )
 
     # PL-Trainer with the following features:
@@ -48,12 +51,14 @@ def main(config: Dict):
 
     # Instantiate train dataloader
     train_dataloader = instantiate_python_class_from_string_config(
-        class_config=config[TRAIN_TORCH_DATA_LOADER_CONFIG_KEY]
+        class_config=config[TRAIN_TORCH_DATA_LOADER_CONFIG_KEY],
+        verbose=verbose_init
     )
     # Instantiate validation dataloader
     val_dataloader = (
         instantiate_python_class_from_string_config(
-            class_config=config[VALIDATION_TORCH_DATA_LOADER_CONFIG_KEY]
+            class_config=config[VALIDATION_TORCH_DATA_LOADER_CONFIG_KEY],
+            verbose=verbose_init
         )
         if VALIDATION_TORCH_DATA_LOADER_CONFIG_KEY in config.keys()
         else None

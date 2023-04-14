@@ -9,6 +9,7 @@ import lit_diffusion.ddpm.lit_ddpm
 from lit_diffusion.util import instantiate_python_class_from_string_config
 from lit_diffusion.constants import (
     PL_MODULE_CONFIG_KEY,
+    VERBOSE_INIT_CONFIG_KEY,
     SAMPLING_CONFIG_KEY,
     SAMPLING_SHAPE_CONFIG_KEY,
     STRICT_CKPT_LOADING_CONFIG_KEY,
@@ -48,11 +49,13 @@ if __name__ == "__main__":
             config = yaml.safe_load(config_file)
         except yaml.YAMLError as exc:
             print(exc)
+    verbose_init = config.get(VERBOSE_INIT_CONFIG_KEY, False)
 
     # Instantiate diffusion model class
     pl_module: lit_diffusion.ddpm.lit_ddpm.LitDDPM = (
         instantiate_python_class_from_string_config(
             class_config=config[PL_MODULE_CONFIG_KEY],
+            verbose=verbose_init
         )
     )
     # Load Module checkpoint

@@ -3,6 +3,7 @@ from enum import Enum
 # Configuration keys for instantiation and training loop
 # Seed
 SEED_CONFIG_KEY = "seed"
+VERBOSE_INIT_CONFIG_KEY = "verbose_init"
 # Data
 TRAIN_TORCH_DATA_LOADER_CONFIG_KEY = "train_torch_data_loader"
 VALIDATION_TORCH_DATA_LOADER_CONFIG_KEY = "validation_torch_data_loader"
