@@ -146,7 +146,7 @@ class LitDDPM(pl.LightningModule):
         model_kwargs = self.get_p_theta_model_kwargs_from_batch(batch=batch)
 
         # Randomly sample current time step
-        batch_size, *_ = batch.shape
+        batch_size, *_ = x_0.shape
         t = torch.randint(
             0, self.beta_schedule_steps, (batch_size,), device=self.device
         ).long()
