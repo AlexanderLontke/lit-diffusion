@@ -1,5 +1,3 @@
-from enum import Enum
-
 # Configuration keys for instantiation and training loop
 # Seed
 SEED_CONFIG_KEY = "seed"
@@ -29,15 +27,3 @@ PYTHON_ARGS_CONFIG_KEY = "args"
 PYTHON_KWARGS_CONFIG_KEY = "kwargs"
 INSTANTIATE_DELAY_CONFIG_KEY = "delay"
 CALL_FUNCTION_UPON_INSTANTIATION_KEY = "call"
-
-
-# Enum for DDPM target options
-class DiffusionTarget(Enum):
-    X_0 = "x_0"
-    EPS = "eps"
-
-
-# Metric keys
-LOGGING_TRAIN_PREFIX = "train/"
-LOGGING_VAL_PREFIX = "val/"
-TRAINING_LOSS_METRIC_KEY = "mse_loss"

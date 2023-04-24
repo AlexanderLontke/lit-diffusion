@@ -54,8 +54,7 @@ if __name__ == "__main__":
     # Instantiate diffusion model class
     pl_module: lit_diffusion.ddpm.lit_ddpm.LitDDPM = (
         instantiate_python_class_from_string_config(
-            class_config=config[PL_MODULE_CONFIG_KEY],
-            verbose=verbose_init
+            class_config=config[PL_MODULE_CONFIG_KEY], verbose=verbose_init
         )
     )
     # Load Module checkpoint

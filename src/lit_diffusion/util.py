@@ -52,7 +52,8 @@ def instantiate_python_class_from_string_config(
             if any(keys == subset for subset in valid_config_key_sets):
                 # ... and if so instantiate the python object.
                 return instantiate_python_class_from_string_config(
-                    class_config=possible_config_dict, verbose=verbose,
+                    class_config=possible_config_dict,
+                    verbose=verbose,
                 )
 
             # Check all levels of dict
@@ -102,7 +103,9 @@ def instantiate_python_class_from_string_config(
     # Python function call of the module attribute with specified config values
     if verbose:
         print(f"Instantiating {class_name} with the following arguments:")
-        pprint({"class_args": class_args, "class_kwargs": class_kwargs, "kwargs": kwargs})
+        pprint(
+            {"class_args": class_args, "class_kwargs": class_kwargs, "kwargs": kwargs}
+        )
     return object_to_instantiate(
         *class_args,
         **class_kwargs,

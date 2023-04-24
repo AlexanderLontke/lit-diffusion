@@ -51,14 +51,13 @@ def main(config: Dict):
 
     # Instantiate train dataloader
     train_dataloader = instantiate_python_class_from_string_config(
-        class_config=config[TRAIN_TORCH_DATA_LOADER_CONFIG_KEY],
-        verbose=verbose_init
+        class_config=config[TRAIN_TORCH_DATA_LOADER_CONFIG_KEY], verbose=verbose_init
     )
     # Instantiate validation dataloader
     val_dataloader = (
         instantiate_python_class_from_string_config(
             class_config=config[VALIDATION_TORCH_DATA_LOADER_CONFIG_KEY],
-            verbose=verbose_init
+            verbose=verbose_init,
         )
         if VALIDATION_TORCH_DATA_LOADER_CONFIG_KEY in config.keys()
         else None
