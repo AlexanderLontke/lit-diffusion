@@ -17,6 +17,11 @@ import pytorch_lightning as pl
 
 # LitDiffusion
 from lit_diffusion.beta_schedule.beta_schedule import make_beta_schedule
+from lit_diffusion.iddpm.sampler import (
+    ScheduleSampler,
+    UniformSampler,
+    LossAwareSampler,
+)
 from lit_diffusion.util import instantiate_python_class_from_string_config
 from lit_diffusion.ddpm.util import default
 from lit_diffusion.utils.lit_ema import LitEma
@@ -25,7 +30,7 @@ from lit_diffusion.diffusion_base.constants import (
     LOGGING_VAL_PREFIX,
     TRAINING_LOSS_METRIC_KEY,
     LOSS_DICT_TARGET_KEY,
-    LOSS_DICT_LOSS_KEY,
+    LOSS_DICT_LOSSES_KEY,
     LOSS_DICT_MODEL_OUTPUT_KEY,
     P_MEAN_VAR_DICT_MEAN_KEY,
     P_MEAN_VAR_DICT_LOG_VARIANCE_KEY,
@@ -47,6 +52,7 @@ class LitDiffusionBase(pl.LightningModule):
         data_key: str,
         use_ema: bool = False,
         clip_denoised: bool = False,
+        schedule_sampler: Optional[ScheduleSampler] = None,
         auxiliary_p_theta_model_input: Optional[Dict] = None,
         learning_rate_scheduler_config: Optional[Dict] = None,
         training_metrics: Optional[Dict[str, Callable]] = None,
@@ -117,6 +123,9 @@ class LitDiffusionBase(pl.LightningModule):
             "sqrt_recip_m1_alphas_cumprod", torch.sqrt(1.0 / alphas_cumprod - 1.0)
         )
 
+        # Setup timestep scheduler
+        self.schedule_sampler = schedule_sampler or UniformSampler(beta_schedule_steps)
+
         # Setup metrics
         self.training_metrics = training_metrics
         self.validation_metrics = validation_metrics
@@ -159,21 +168,29 @@ class LitDiffusionBase(pl.LightningModule):
     ):
         # Get data sample
         x_0 = batch[self.data_key]
+
         # Determine any further required inputs from the data set
         model_kwargs = self.get_p_theta_model_kwargs_from_batch(batch=batch)
 
         # Randomly sample current time step
         batch_size, *_ = x_0.shape
-        t = torch.randint(
-            0, self.beta_schedule_steps, (batch_size,), device=self.device
-        ).long()
+        t, weights = self.schedule_sampler.sample(
+            batch_size=batch_size, device=self.device
+        )
 
         # Get model outputs and loss
         loss_dict = self.p_loss(x_0=x_0, t=t, **model_kwargs)
-        loss = loss_dict[LOSS_DICT_LOSS_KEY]
+        losses = loss_dict[LOSS_DICT_LOSSES_KEY]
         model_output = loss_dict[LOSS_DICT_MODEL_OUTPUT_KEY]
         target = loss_dict[LOSS_DICT_TARGET_KEY]
         del loss_dict
+
+        # Update sampler if necessary
+        if isinstance(self.schedule_sampler, LossAwareSampler):
+            self.schedule_sampler.update_with_local_losses(t, losses.detach())
+
+        # Calculate final loss based on timestep sampler weights
+        loss = (losses * weights).mean()
 
         # Log trainings loss
         self.log(

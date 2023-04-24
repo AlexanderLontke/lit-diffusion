@@ -15,15 +15,12 @@ from lit_diffusion.diffusion_base.lit_diffusion_base import LitDiffusionBase
 from lit_diffusion.diffusion_base.constants import (
     LOSS_DICT_TARGET_KEY,
     LOSS_DICT_MODEL_OUTPUT_KEY,
-    LOSS_DICT_LOSS_KEY,
+    LOSS_DICT_LOSSES_KEY,
     P_MEAN_VAR_DICT_LOG_VARIANCE_KEY,
     P_MEAN_VAR_DICT_MEAN_KEY,
     P_MEAN_VAR_DICT_VARIANCE_KEY,
     P_MEAN_VAR_DICT_PRED_X_0_KEY,
 )
-
-# Beta Schedule
-from lit_diffusion.beta_schedule.beta_schedule import make_beta_schedule
 
 
 class LitDDPM(LitDiffusionBase):
@@ -39,7 +36,9 @@ class LitDDPM(LitDiffusionBase):
         self.diffusion_target = diffusion_target
 
         # Setup loss
-        self.loss = nn.MSELoss()  # Equivalent to L2 loss
+        # MSE loss is equivalent to L2 loss,
+        # averaging is delayed to enable t-schedule sampling
+        self.loss = nn.MSELoss(reduction="none")
 
     # Methods relating to approximating p_{\theta}(x_{t-1}|x_{t})
     def p_loss(
@@ -72,7 +71,9 @@ class LitDDPM(LitDiffusionBase):
                 f"Diffusion target {self.diffusion_target} not supported"
             )
         return {
-            LOSS_DICT_LOSS_KEY: self.loss(model_x, target),
+            LOSS_DICT_LOSSES_KEY: self.loss(model_x, target).mean(
+                dim=list(range(1, len(model_x.shape)))
+            ),
             LOSS_DICT_MODEL_OUTPUT_KEY: model_x,
             LOSS_DICT_TARGET_KEY: target,
         }

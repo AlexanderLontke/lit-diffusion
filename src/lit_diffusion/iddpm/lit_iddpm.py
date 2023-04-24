@@ -27,7 +27,7 @@ from lit_diffusion.diffusion_base.lit_diffusion_base import LitDiffusionBase
 from lit_diffusion.diffusion_base.constants import (
     LOSS_DICT_TARGET_KEY,
     LOSS_DICT_MODEL_OUTPUT_KEY,
-    LOSS_DICT_LOSS_KEY,
+    LOSS_DICT_LOSSES_KEY,
     P_MEAN_VAR_DICT_MEAN_KEY,
     P_MEAN_VAR_DICT_VARIANCE_KEY,
     P_MEAN_VAR_DICT_LOG_VARIANCE_KEY,
@@ -46,6 +46,7 @@ class LitIDDPM(LitDiffusionBase):
         super().__init__(*args, **kwargs)
         self.model_variance_type = IDDPMVarianceType(model_variance_type)
         self.diffusion_target = IDDPMTargetType(diffusion_target)
+        self.num_timesteps = int(self.betas.shape[0])
 
     # PyTorch Lightning functions
     def p_loss(
@@ -132,7 +133,7 @@ class LitIDDPM(LitDiffusionBase):
             raise NotImplementedError(self.loss_type)
 
         return {
-            LOSS_DICT_LOSS_KEY: terms["loss"].mean(),
+            LOSS_DICT_LOSSES_KEY: terms["loss"],
             LOSS_DICT_TARGET_KEY: target,
             LOSS_DICT_MODEL_OUTPUT_KEY: model_output,
         }

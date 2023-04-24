@@ -1,5 +1,5 @@
 # Loss dict keys
-LOSS_DICT_LOSS_KEY = "loss"
+LOSS_DICT_LOSSES_KEY = "losses"
 LOSS_DICT_MODEL_OUTPUT_KEY = "model_output"
 LOSS_DICT_TARGET_KEY = "target"
 
