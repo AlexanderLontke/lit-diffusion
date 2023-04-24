@@ -44,7 +44,7 @@ class LitIDDPM(LitDiffusionBase):
         **kwargs
     ):
         super().__init__(*args, **kwargs)
-        self.model_variance_type = model_variance_type
+        self.model_variance_type = IDDPMVarianceType(model_variance_type)
         self.diffusion_target = IDDPMTargetType(diffusion_target)
 
     # PyTorch Lightning functions
@@ -104,7 +104,7 @@ class LitIDDPM(LitDiffusionBase):
                 # it affect our mean prediction.
                 frozen_out = torch.cat([model_output.detach(), model_var_values], dim=1)
                 terms["vb"] = self._vb_terms_bpd(
-                    model=lambda *args, r=frozen_out: r,
+                    frozen_out=frozen_out,
                     x_start=x_0,
                     x_t=x_t,
                     t=t,
@@ -132,12 +132,14 @@ class LitIDDPM(LitDiffusionBase):
             raise NotImplementedError(self.loss_type)
 
         return {
-            LOSS_DICT_LOSS_KEY: terms["loss"],
+            LOSS_DICT_LOSS_KEY: terms["loss"].mean(),
             LOSS_DICT_TARGET_KEY: target,
             LOSS_DICT_MODEL_OUTPUT_KEY: model_output,
         }
 
-    def _vb_terms_bpd(self, x_start, x_t, t, clip_denoised=True, model_kwargs=None):
+    def _vb_terms_bpd(
+        self, x_start, x_t, t, clip_denoised=True, model_kwargs=None, frozen_out=None
+    ):
         """
         Get a term for the variational lower-bound.
 
@@ -152,7 +154,11 @@ class LitIDDPM(LitDiffusionBase):
             x_start=x_start, x_t=x_t, t=t
         )
         out = self.p_mean_variance(
-            x_t, t, clip_denoised=clip_denoised, model_kwargs=model_kwargs
+            x_t,
+            t,
+            clip_denoised=clip_denoised,
+            model_kwargs=model_kwargs,
+            frozen_out=frozen_out,
         )
         kl = normal_kl(
             true_mean,
@@ -197,6 +203,7 @@ class LitIDDPM(LitDiffusionBase):
         clip_denoised: bool,
         denoised_fn: Optional[Callable] = None,
         model_kwargs: Optional[Dict[str, Any]] = None,
+        frozen_out=None,
     ) -> Dict[str, torch.Tensor]:
         """
         Apply the model to get p(x_{t-1} | x_t), as well as a prediction of
@@ -221,7 +228,11 @@ class LitIDDPM(LitDiffusionBase):
 
         B, C = x_t.shape[:2]
         assert t.shape == (B,)
-        model_output = self.p_theta_model(x_t, self._scale_timesteps(t), **model_kwargs)
+        model_output = (
+            frozen_out
+            if frozen_out
+            else self.p_theta_model(x_t, self._scale_timesteps(t), **model_kwargs)
+        )
 
         if self.model_variance_type in [
             IDDPMVarianceType.LEARNED,
@@ -288,7 +299,10 @@ class LitIDDPM(LitDiffusionBase):
             raise NotImplementedError(self.diffusion_target)
 
         assert (
-            model_mean.shape == model_log_variance.shape == pred_xstart.shape == x_t.shape
+            model_mean.shape
+            == model_log_variance.shape
+            == pred_xstart.shape
+            == x_t.shape
         )
         return {
             P_MEAN_VAR_DICT_MEAN_KEY: model_mean,
