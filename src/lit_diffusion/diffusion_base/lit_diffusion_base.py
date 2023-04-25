@@ -179,7 +179,7 @@ class LitDiffusionBase(pl.LightningModule):
         )
 
         # Get model outputs and loss
-        loss_dict = self.p_loss(x_0=x_0, t=t, **model_kwargs)
+        loss_dict = self.p_loss(x_0=x_0, t=t, model_kwargs=model_kwargs)
         losses = loss_dict[LOSS_DICT_LOSSES_KEY]
         model_output = loss_dict[LOSS_DICT_MODEL_OUTPUT_KEY]
         target = loss_dict[LOSS_DICT_TARGET_KEY]
