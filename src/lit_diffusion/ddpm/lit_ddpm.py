@@ -33,7 +33,7 @@ class LitDDPM(LitDiffusionBase):
         super().__init__(*args, **kwargs)
 
         # Set diffusion training target
-        self.diffusion_target = diffusion_target
+        self.diffusion_target = DDPMDiffusionTarget(diffusion_target)
 
         # Setup loss
         # MSE loss is equivalent to L2 loss,
