@@ -8,7 +8,6 @@ class AdapterPThetaModel(nn.Module):
     def __init__(
         self,
         original_p_theta_model: nn.Module,
-        stack_inputs_keys: Optional[List[str]] = None,
         p_theta_model_output_index: int = 0,
         p_theta_model_call_timestep_key: Optional[str] = None,
         output_mask_key: Optional[str] = None,
@@ -16,7 +15,6 @@ class AdapterPThetaModel(nn.Module):
         super().__init__()
         # Store p_theta_model
         self._p_theta_model = original_p_theta_model
-        self.stack_inputs_keys = stack_inputs_keys
         self.p_theta_model_call_timestep_key = p_theta_model_call_timestep_key
         self.p_theta_model_output_index = p_theta_model_output_index
         self.output_mask_key = output_mask_key
@@ -26,11 +24,6 @@ class AdapterPThetaModel(nn.Module):
         # key word arguments
         if self.p_theta_model_call_timestep_key:
             kwargs[self.p_theta_model_call_timestep_key] = t
-
-        # stack data from kwargs onto x if it is desired
-        if self.stack_inputs_keys:
-            for k in self.stack_inputs_keys:
-                x_t = torch.cat([x_t, kwargs.pop(k)], dim=1)
 
         # If an output mask key was given remove it from model input
         if self.output_mask_key:

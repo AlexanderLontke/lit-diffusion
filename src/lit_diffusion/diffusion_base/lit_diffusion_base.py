@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from contextlib import contextmanager, nullcontext
-from typing import Any, Optional, Dict, Callable
+from typing import Any, List, Optional, Dict, Callable
 
 from tqdm import tqdm
 
@@ -53,6 +53,7 @@ class LitDiffusionBase(pl.LightningModule):
         use_ema: bool = False,
         clip_denoised: bool = False,
         schedule_sampler: Optional[ScheduleSampler] = None,
+        stack_inputs_keys: Optional[List[str]] = None,
         auxiliary_p_theta_model_input: Optional[Dict] = None,
         learning_rate_scheduler_config: Optional[Dict] = None,
         training_metrics: Optional[Dict[str, Callable]] = None,
@@ -64,6 +65,7 @@ class LitDiffusionBase(pl.LightningModule):
         self.save_hyperparameters(ignore=["p_theta_model"])
         # P_theta model
         self.p_theta_model = p_theta_model
+        self.stack_inputs_keys = stack_inputs_keys
         self.auxiliary_p_theta_model_input = auxiliary_p_theta_model_input
 
         # Make beta schedule
@@ -171,6 +173,11 @@ class LitDiffusionBase(pl.LightningModule):
 
         # Determine any further required inputs from the data set
         model_kwargs = self.get_p_theta_model_kwargs_from_batch(batch=batch)
+
+        # stack data from kwargs onto x if it is desired
+        if self.stack_inputs_keys:
+            for k in self.stack_inputs_keys:
+                x_0 = torch.cat([x_0, model_kwargs.pop(k)], dim=1)
 
         # Randomly sample current time step
         batch_size, *_ = x_0.shape
