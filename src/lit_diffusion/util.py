@@ -9,14 +9,14 @@ from lit_diffusion.constants import (
     PYTHON_ARGS_CONFIG_KEY,
     PYTHON_KWARGS_CONFIG_KEY,
     INSTANTIATE_DELAY_CONFIG_KEY,
-    CALL_FUNCTION_UPON_INSTANTIATION_KEY,
+    CALL_UPON_INSTANTIATION_KEY,
 )
 
 _POSSIBLE_ARGS_CONFIG_KEYS = [
     PYTHON_ARGS_CONFIG_KEY,
     PYTHON_KWARGS_CONFIG_KEY,
     INSTANTIATE_DELAY_CONFIG_KEY,
-    CALL_FUNCTION_UPON_INSTANTIATION_KEY,
+    CALL_UPON_INSTANTIATION_KEY,
 ]
 
 
@@ -87,30 +87,20 @@ def instantiate_python_class_from_string_config(
     module = import_module(module_name)
     object_to_instantiate = getattr(module, class_name)
 
-    # If the object is a function no further actions are necessary
-    if isfunction(object_to_instantiate):
-        if verbose:
-            print(f"Instantiating function: {class_name}")
-        # Give user the option to call it upon instantiation
-        if class_config.get(CALL_FUNCTION_UPON_INSTANTIATION_KEY, True):
-            object_to_instantiate = object_to_instantiate(
-                *class_args,
-                **class_kwargs,
-                **kwargs,
-            )
-        return object_to_instantiate
-
     # Python function call of the module attribute with specified config values
     if verbose:
         print(f"Instantiating {class_name} with the following arguments:")
         pprint(
             {"class_args": class_args, "class_kwargs": class_kwargs, "kwargs": kwargs}
         )
-    return object_to_instantiate(
-        *class_args,
-        **class_kwargs,
-        **kwargs,
-    )
+    # Give user the option to call it upon instantiation
+    if class_config.get(CALL_UPON_INSTANTIATION_KEY, True):
+        object_to_instantiate = object_to_instantiate(
+            *class_args,
+            **class_kwargs,
+            **kwargs,
+        )
+    return object_to_instantiate
 
 
 class TestClass:
