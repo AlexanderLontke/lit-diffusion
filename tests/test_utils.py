@@ -1,11 +1,12 @@
 from torch import nn
 
-from lit_diffusion.utils.adapter_p_theta_model import AdapterPThetaModel
+from lit_diffusion.diffusion_base.lit_diffusion_base import LitDiffusionBase
 from conftest import OTHER_IMG_KWARG_KEY
 
 
 def test_adapter_model_stacking(x_t_batch, t_batch, batch_model_kwargs):
-    p_theta_adapter = AdapterPThetaModel(
+    # TODO fix broken test
+    p_theta_adapter = LitDiffusionBase(
         original_p_theta_model=nn.Identity(),
         stack_inputs_keys=[OTHER_IMG_KWARG_KEY]
     )
