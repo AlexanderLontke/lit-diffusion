@@ -5,8 +5,12 @@ from torch.utils.data import DataLoader
 
 class AdapterDataloader(Iterator):
     def __init__(self, original_dataloader: DataLoader, mapping: List[str], sort_mapping: bool = False):
+        self.len = original_dataloader.__len__()
         self.original_dataloader_it = original_dataloader.__iter__()
         self.mapping = sorted(mapping) if sort_mapping else mapping
+
+    def __len__(self):
+        return self.len
 
     def __iter__(self):
         return self
