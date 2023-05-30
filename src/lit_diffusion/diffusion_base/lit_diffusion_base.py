@@ -211,13 +211,23 @@ class LitDiffusionBase(pl.LightningModule):
         # Log any additional metrics
         if metrics_dict:
             for metric_name, metric_function in metrics_dict.items():
-                self.log(
-                    name=logging_prefix + metric_name,
-                    value=metric_function(model_output, target),
-                    on_step=True,
-                    on_epoch=True,
-                    batch_size=batch_size,
-                )
+                logging_kwargs = {
+                    "on_step": True,
+                    "on_epoch": True,
+                    "batch_size": batch_size
+                }
+                value = metric_function(model_output, target)
+                if isinstance(value, Dict):
+                    self.log_dict(
+                        value,
+                        **logging_kwargs
+                    )
+                else:
+                    self.log(
+                        name=logging_prefix + metric_name,
+                        value=value,
+                        **logging_kwargs
+                    )
         return loss
 
     # Pytorch Lightning Methods for training
