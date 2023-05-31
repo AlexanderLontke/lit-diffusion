@@ -198,7 +198,7 @@ class LitDiffusionBase(pl.LightningModule):
         """
         return (
             extract_into_tensor(self.sqrt_recip_alphas_cumprod, t, x_t.shape) * x_t
-            - extract_into_tensor(self.sqrt_recipm1_alphas_cumprod, t, x_t.shape) * noise
+            - extract_into_tensor(self.sqrt_recip_m1_alphas_cumprod, t, x_t.shape) * noise
         )
 
     def _train_val_step(
