@@ -26,6 +26,8 @@ from lit_diffusion.iddpm.constants import (
 from lit_diffusion.diffusion_base.lit_diffusion_base import LitDiffusionBase
 from lit_diffusion.diffusion_base.constants import (
     LOSS_DICT_TARGET_KEY,
+    LOSS_DICT_NOISED_INPUT_KEY,
+    LOSS_DICT_NOISE_KEY,
     LOSS_DICT_MODEL_OUTPUT_KEY,
     LOSS_DICT_LOSSES_KEY,
     P_MEAN_VAR_DICT_MEAN_KEY,
@@ -64,8 +66,7 @@ class LitIDDPM(LitDiffusionBase):
         """
         if model_kwargs is None:
             model_kwargs = {}
-        noise = torch.randn_like(x_0)
-        x_t = self.q_sample(x_0, t, noise=noise)
+        x_t, noise = self.q_sample(x_0, t)
 
         terms = {}
 
@@ -124,16 +125,18 @@ class LitIDDPM(LitDiffusionBase):
                 IDDPMTargetType.EPSILON: noise,
             }[self.model_mean_type]
             assert model_output.shape == target.shape == x_0.shape
-            terms["mse"] = mean_flat((target - model_output) ** 2)
+            mse_term = mean_flat((target - model_output) ** 2)
             if "vb" in terms:
-                terms["loss"] = terms["mse"] + terms["vb"]
+                terms["loss"] = mse_term + terms["vb"]
             else:
-                terms["loss"] = terms["mse"]
+                terms["loss"] = mse_term
         else:
             raise NotImplementedError(self.loss_type)
 
         return {
             LOSS_DICT_LOSSES_KEY: terms["loss"],
+            LOSS_DICT_NOISED_INPUT_KEY: x_t,
+            LOSS_DICT_NOISE_KEY: noise,
             LOSS_DICT_TARGET_KEY: target,
             LOSS_DICT_MODEL_OUTPUT_KEY: model_output,
         }
@@ -333,28 +336,6 @@ class LitIDDPM(LitDiffusionBase):
         if self.rescale_timesteps:
             return t.float() * (1000.0 / self.num_timesteps)
         return t
-
-    def q_sample(
-        self, x_start: torch.Tensor, t: torch.Tensor, noise: torch.Tensor = None
-    ):
-        """
-        Diffuse the data for a given number of diffusion steps.
-
-        In other words, sample from q(x_t | x_0).
-
-        :param x_start: the initial data batch.
-        :param t: the number of diffusion steps (minus 1). Here, 0 means one step.
-        :param noise: if specified, the split-out normal noise.
-        :return: A noisy version of x_start.
-        """
-        if noise is None:
-            noise = torch.randn_like(x_start)
-        assert noise.shape == x_start.shape
-        return (
-            extract_into_tensor(self.sqrt_alphas_cumprod, t, x_start.shape) * x_start
-            + extract_into_tensor(self.sqrt_one_minus_alphas_cumprod, t, x_start.shape)
-            * noise
-        )
 
     def q_posterior_mean_variance(self, x_start, x_t, t):
         """

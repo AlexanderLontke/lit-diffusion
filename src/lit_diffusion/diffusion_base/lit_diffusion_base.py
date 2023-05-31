@@ -23,7 +23,7 @@ from lit_diffusion.iddpm.sampler import (
     LossAwareSampler,
 )
 from lit_diffusion.util import instantiate_python_class_from_string_config
-from lit_diffusion.ddpm.util import default
+from lit_diffusion.ddpm.util import default, extract_into_tensor
 from lit_diffusion.utils.lit_ema import LitEma
 from lit_diffusion.diffusion_base.constants import (
     LOGGING_TRAIN_PREFIX,
@@ -32,6 +32,8 @@ from lit_diffusion.diffusion_base.constants import (
     LOSS_DICT_TARGET_KEY,
     LOSS_DICT_LOSSES_KEY,
     LOSS_DICT_MODEL_OUTPUT_KEY,
+    LOSS_DICT_NOISED_INPUT_KEY,
+    LOSS_DICT_NOISE_KEY,
     P_MEAN_VAR_DICT_MEAN_KEY,
     P_MEAN_VAR_DICT_LOG_VARIANCE_KEY,
     P_MEAN_VAR_DICT_PRED_X_0_KEY,
@@ -161,9 +163,45 @@ class LitDiffusionBase(pl.LightningModule):
         :param x_0: Starting input
         :param t: sampled timestep
         :param model_kwargs: additional model key word arguments
-        :return: Triple containing loss, model output and the model's target
+        :return: Tuple containing loss, noised input, noise, model output and the model's target
         """
         raise NotImplementedError("Abstract method call")
+
+    def q_sample(
+        self, x_start: torch.Tensor, t: torch.Tensor, noise: torch.Tensor = None
+    ):
+        """
+        Diffuse the data for a given number of diffusion steps.
+
+        In other words, sample from q(x_t | x_0).
+
+        :param x_start: the initial data batch.
+        :param t: the number of diffusion steps (minus 1). Here, 0 means one step.
+        :param noise: if specified, the split-out normal noise.
+        :return: A noisy version of x_start.
+        """
+        if noise is None:
+            noise = torch.randn_like(x_start)
+        assert noise.shape == x_start.shape
+        return (
+            extract_into_tensor(self.sqrt_alphas_cumprod, t, x_start.shape) * x_start
+            + extract_into_tensor(self.sqrt_one_minus_alphas_cumprod, t, x_start.shape)
+            * noise
+        ), noise
+
+    def q_sample_inverse(self, x_t: torch.Tensor, noise: torch.Tensor, t: torch.Tensor):
+        """
+        Computes the reconstructed x based on a given noised x and the noise as well as the corresponding timestep
+        :param x_t: noised input
+        :param noise: noise which was added onto the input
+        :param t: timestep corresponding to the level of the noise
+        :return: De-noised x
+        """
+        return (
+            x_t
+            - extract_into_tensor(self.sqrt_one_minus_alphas_cumprod, t, x_t.shape)
+            * noise
+        ) / extract_into_tensor(self.sqrt_alphas_cumprod, t, x_t.shape)
 
     def _train_val_step(
         self, batch, metrics_dict: Optional[Dict[str, Callable]], logging_prefix: str
@@ -188,6 +226,8 @@ class LitDiffusionBase(pl.LightningModule):
         # Get model outputs and loss
         loss_dict = self.p_loss(x_0=x_0, t=t, model_kwargs=model_kwargs)
         losses = loss_dict[LOSS_DICT_LOSSES_KEY]
+        noise = loss_dict[LOSS_DICT_NOISE_KEY]
+        x_t = loss_dict[LOSS_DICT_NOISED_INPUT_KEY]
         model_output = loss_dict[LOSS_DICT_MODEL_OUTPUT_KEY]
         target = loss_dict[LOSS_DICT_TARGET_KEY]
         del loss_dict
@@ -211,24 +251,53 @@ class LitDiffusionBase(pl.LightningModule):
         # Log any additional metrics
         if metrics_dict:
             for metric_name, metric_function in metrics_dict.items():
-                logging_kwargs = {
-                    "on_step": True,
-                    "on_epoch": True,
-                    "batch_size": batch_size
-                }
-                value = metric_function(model_output, target)
-                if isinstance(value, Dict):
-                    self.log_dict(
-                        value,
-                        **logging_kwargs
-                    )
-                else:
-                    self.log(
-                        name=logging_prefix + metric_name,
-                        value=value,
-                        **logging_kwargs
-                    )
+                self._log_metric(
+                    logging_prefix=logging_prefix,
+                    metric_name=metric_name,
+                    metric_function=metric_function,
+                    batch_size=batch_size,
+                    model_output=model_output,
+                    target=target,
+                )
+                reconstructed_x_0 = self.q_sample_inverse(
+                    x_t=x_t,
+                    noise=noise,
+                    t=t,
+                )
+                self._log_metric(
+                    logging_prefix=logging_prefix + "reconstructed_x0_",
+                    metric_name=metric_name,
+                    metric_function=metric_function,
+                    batch_size=batch_size,
+                    model_output=reconstructed_x_0,
+                    target=x_0,
+                )
         return loss
+
+    def _log_metric(
+        self,
+        logging_prefix: str,
+        metric_name: str,
+        metric_function: Callable,
+        batch_size: int,
+        model_output: torch.Tensor,
+        target: torch.Tensor,
+    ):
+        if hasattr(metric_function, "device") and hasattr(metric_function, "to"):
+            metric_function = metric_function.to(target.device)
+        logging_kwargs = {
+            "on_step": True,
+            "on_epoch": True,
+            "batch_size": batch_size,
+        }
+        value = metric_function(model_output, target)
+        if isinstance(value, Dict):
+            self.log_dict(
+                dictionary={logging_prefix + k: v for k, v in value.items()},
+                **logging_kwargs,
+            )
+        else:
+            self.log(name=logging_prefix + metric_name, value=value, **logging_kwargs)
 
     # Pytorch Lightning Methods for training
     def training_step(self, batch) -> STEP_OUTPUT:

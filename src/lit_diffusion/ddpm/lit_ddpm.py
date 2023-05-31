@@ -14,6 +14,8 @@ from lit_diffusion.ddpm.constants import (
 from lit_diffusion.diffusion_base.lit_diffusion_base import LitDiffusionBase
 from lit_diffusion.diffusion_base.constants import (
     LOSS_DICT_TARGET_KEY,
+    LOSS_DICT_NOISED_INPUT_KEY,
+    LOSS_DICT_NOISE_KEY,
     LOSS_DICT_MODEL_OUTPUT_KEY,
     LOSS_DICT_LOSSES_KEY,
     P_MEAN_VAR_DICT_LOG_VARIANCE_KEY,
@@ -56,7 +58,7 @@ class LitDDPM(LitDiffusionBase):
         :return: Simplified loss for the KL_divergence of q and p_{\theta}
         """
         noised_x, noise = self.q_sample(
-            x_0=x_0,
+            x_start=x_0,
             t=t,
         )
         model_x = self.p_theta_model(noised_x, t, **model_kwargs)
@@ -74,25 +76,11 @@ class LitDDPM(LitDiffusionBase):
             LOSS_DICT_LOSSES_KEY: self.loss(model_x, target).mean(
                 dim=list(range(1, len(model_x.shape)))
             ),
+            LOSS_DICT_NOISED_INPUT_KEY: noised_x,
             LOSS_DICT_MODEL_OUTPUT_KEY: model_x,
+            LOSS_DICT_NOISE_KEY: noise,
             LOSS_DICT_TARGET_KEY: target,
         }
-
-    def q_sample(self, x_0, t):
-        """
-        Samples x_t from the distribution q(x_t|x_{t-1}) given x_0 and t, made possible through the
-        re-parametrization trick
-        :param x_0: sample without any noise
-        :param t: timestep for which a noised sample x_t should be created
-        :return: x_t and noise used to generate it
-        """
-        epsilon_noise = torch.randn_like(x_0)
-        noised_x = (
-            extract_into_tensor(self.sqrt_alphas_cumprod, t, x_0.shape) * x_0
-            + extract_into_tensor(self.sqrt_one_minus_alphas_cumprod, t, x_0.shape)
-            * epsilon_noise
-        )
-        return noised_x, epsilon_noise
 
     # Methods related to sampling from the distribution p_{\theta}(x_{t-1}|x_{t})
     def q_posterior(self, x_0, x_t, t):
