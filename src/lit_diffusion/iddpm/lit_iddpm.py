@@ -26,8 +26,7 @@ from lit_diffusion.iddpm.constants import (
 from lit_diffusion.diffusion_base.lit_diffusion_base import LitDiffusionBase
 from lit_diffusion.diffusion_base.constants import (
     LOSS_DICT_TARGET_KEY,
-    LOSS_DICT_NOISED_INPUT_KEY,
-    LOSS_DICT_NOISE_KEY,
+    LOSS_DICT_RECONSTRUCTED_INPUT_KEY,
     LOSS_DICT_MODEL_OUTPUT_KEY,
     LOSS_DICT_LOSSES_KEY,
     P_MEAN_VAR_DICT_MEAN_KEY,
@@ -123,7 +122,7 @@ class LitIDDPM(LitDiffusionBase):
                 )[0],
                 IDDPMTargetType.START_X: x_0,
                 IDDPMTargetType.EPSILON: noise,
-            }[self.model_mean_type]
+            }[self.diffusion_target]
             assert model_output.shape == target.shape == x_0.shape
             mse_term = mean_flat((target - model_output) ** 2)
             if "vb" in terms:
@@ -135,8 +134,7 @@ class LitIDDPM(LitDiffusionBase):
 
         return {
             LOSS_DICT_LOSSES_KEY: terms["loss"],
-            LOSS_DICT_NOISED_INPUT_KEY: x_t,
-            LOSS_DICT_NOISE_KEY: noise,
+            LOSS_DICT_RECONSTRUCTED_INPUT_KEY: x_t,
             LOSS_DICT_TARGET_KEY: target,
             LOSS_DICT_MODEL_OUTPUT_KEY: model_output,
         }

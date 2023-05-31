@@ -2,8 +2,7 @@
 LOSS_DICT_LOSSES_KEY = "losses"
 LOSS_DICT_MODEL_OUTPUT_KEY = "model_output"
 LOSS_DICT_TARGET_KEY = "target"
-LOSS_DICT_NOISED_INPUT_KEY = "noised_input"
-LOSS_DICT_NOISE_KEY = "noise"
+LOSS_DICT_RECONSTRUCTED_INPUT_KEY = "reconstructed_input"
 
 # P Mean, Variance Return Dict keys
 P_MEAN_VAR_DICT_MEAN_KEY = "p_mean"

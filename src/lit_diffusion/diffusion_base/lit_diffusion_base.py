@@ -32,8 +32,7 @@ from lit_diffusion.diffusion_base.constants import (
     LOSS_DICT_TARGET_KEY,
     LOSS_DICT_LOSSES_KEY,
     LOSS_DICT_MODEL_OUTPUT_KEY,
-    LOSS_DICT_NOISED_INPUT_KEY,
-    LOSS_DICT_NOISE_KEY,
+    LOSS_DICT_RECONSTRUCTED_INPUT_KEY,
     P_MEAN_VAR_DICT_MEAN_KEY,
     P_MEAN_VAR_DICT_LOG_VARIANCE_KEY,
     P_MEAN_VAR_DICT_PRED_X_0_KEY,
@@ -163,7 +162,7 @@ class LitDiffusionBase(pl.LightningModule):
         :param x_0: Starting input
         :param t: sampled timestep
         :param model_kwargs: additional model key word arguments
-        :return: Tuple containing loss, noised input, noise, model output and the model's target
+        :return: Tuple containing loss, reconstructed input, noise, model output and the model's target
         """
         raise NotImplementedError("Abstract method call")
 
@@ -226,8 +225,7 @@ class LitDiffusionBase(pl.LightningModule):
         # Get model outputs and loss
         loss_dict = self.p_loss(x_0=x_0, t=t, model_kwargs=model_kwargs)
         losses = loss_dict[LOSS_DICT_LOSSES_KEY]
-        noise = loss_dict[LOSS_DICT_NOISE_KEY]
-        x_t = loss_dict[LOSS_DICT_NOISED_INPUT_KEY]
+        reconstructed_x_0 = loss_dict[LOSS_DICT_RECONSTRUCTED_INPUT_KEY]
         model_output = loss_dict[LOSS_DICT_MODEL_OUTPUT_KEY]
         target = loss_dict[LOSS_DICT_TARGET_KEY]
         del loss_dict
@@ -258,11 +256,6 @@ class LitDiffusionBase(pl.LightningModule):
                     batch_size=batch_size,
                     model_output=model_output,
                     target=target,
-                )
-                reconstructed_x_0 = self.q_sample_inverse(
-                    x_t=x_t,
-                    noise=noise,
-                    t=t,
                 )
                 self._log_metric(
                     logging_prefix=logging_prefix + "reconstructed_x0_",

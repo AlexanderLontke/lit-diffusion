@@ -14,8 +14,7 @@ from lit_diffusion.ddpm.constants import (
 from lit_diffusion.diffusion_base.lit_diffusion_base import LitDiffusionBase
 from lit_diffusion.diffusion_base.constants import (
     LOSS_DICT_TARGET_KEY,
-    LOSS_DICT_NOISED_INPUT_KEY,
-    LOSS_DICT_NOISE_KEY,
+    LOSS_DICT_RECONSTRUCTED_INPUT_KEY,
     LOSS_DICT_MODEL_OUTPUT_KEY,
     LOSS_DICT_LOSSES_KEY,
     P_MEAN_VAR_DICT_LOG_VARIANCE_KEY,
@@ -66,8 +65,10 @@ class LitDDPM(LitDiffusionBase):
         # Determine target
         if self.diffusion_target == DDPMDiffusionTarget.X_0:
             target = x_0
+            reconstructed_x0 = model_x
         elif self.diffusion_target == DDPMDiffusionTarget.EPS:
             target = noise
+            reconstructed_x0 = self.q_sample_inverse(x_t=noised_x, noise=model_x, t=t)
         else:
             raise NotImplementedError(
                 f"Diffusion target {self.diffusion_target} not supported"
@@ -76,9 +77,8 @@ class LitDDPM(LitDiffusionBase):
             LOSS_DICT_LOSSES_KEY: self.loss(model_x, target).mean(
                 dim=list(range(1, len(model_x.shape)))
             ),
-            LOSS_DICT_NOISED_INPUT_KEY: noised_x,
             LOSS_DICT_MODEL_OUTPUT_KEY: model_x,
-            LOSS_DICT_NOISE_KEY: noise,
+            LOSS_DICT_RECONSTRUCTED_INPUT_KEY: reconstructed_x0,
             LOSS_DICT_TARGET_KEY: target,
         }
 
