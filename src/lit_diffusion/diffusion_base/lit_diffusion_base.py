@@ -197,10 +197,9 @@ class LitDiffusionBase(pl.LightningModule):
         :return: De-noised x
         """
         return (
-            x_t
-            - extract_into_tensor(self.sqrt_one_minus_alphas_cumprod, t, x_t.shape)
-            * noise
-        ) / extract_into_tensor(self.sqrt_alphas_cumprod, t, x_t.shape)
+            extract_into_tensor(self.sqrt_recip_alphas_cumprod, t, x_t.shape) * x_t
+            - extract_into_tensor(self.sqrt_recipm1_alphas_cumprod, t, x_t.shape) * noise
+        )
 
     def _train_val_step(
         self, batch, metrics_dict: Optional[Dict[str, Callable]], logging_prefix: str
