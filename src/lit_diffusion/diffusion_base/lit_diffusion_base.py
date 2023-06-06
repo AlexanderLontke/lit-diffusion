@@ -141,14 +141,19 @@ class LitDiffusionBase(pl.LightningModule):
         self.data_key = data_key
 
     # Methods relating to calling the de-noising model
-    def get_p_theta_model_kwargs_from_batch(self, batch):
+    def format_p_theta_model_input(self, x_0,  batch):
         model_kwargs = {}
         if self.auxiliary_p_theta_model_input:
             model_kwargs = {
                 model_kwarg: batch[data_key]
                 for model_kwarg, data_key in self.auxiliary_p_theta_model_input.items()
             }
-        return model_kwargs
+
+        # stack data from kwargs onto x if it is desired
+        if self.stack_inputs_keys:
+            for k in self.stack_inputs_keys:
+                x_0 = torch.cat([x_0, model_kwargs.pop(k)], dim=1)
+        return x_0, model_kwargs
 
     @abstractmethod
     def p_loss(
@@ -208,12 +213,7 @@ class LitDiffusionBase(pl.LightningModule):
         x_0 = batch[self.data_key]
 
         # Determine any further required inputs from the data set
-        model_kwargs = self.get_p_theta_model_kwargs_from_batch(batch=batch)
-
-        # stack data from kwargs onto x if it is desired
-        if self.stack_inputs_keys:
-            for k in self.stack_inputs_keys:
-                x_0 = torch.cat([x_0, model_kwargs.pop(k)], dim=1)
+        x_0, model_kwargs = self.format_p_theta_model_input(x_0=x_0, batch=batch)
 
         # Randomly sample current time step
         batch_size, *_ = x_0.shape
