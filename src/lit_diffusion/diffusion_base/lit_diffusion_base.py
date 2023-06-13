@@ -25,6 +25,7 @@ from lit_diffusion.iddpm.sampler import (
 from lit_diffusion.util import instantiate_python_class_from_string_config
 from lit_diffusion.ddpm.util import default, extract_into_tensor
 from lit_diffusion.utils.lit_ema import LitEma
+from lit_diffusion.utils.vlb_utils import mean_flat, normal_kl, discretized_gaussian_log_likelihood
 from lit_diffusion.diffusion_base.constants import (
     LOGGING_TRAIN_PREFIX,
     LOGGING_VAL_PREFIX,
@@ -351,6 +352,51 @@ class LitDiffusionBase(pl.LightningModule):
                 if context is not None:
                     print(f"{context}: Restored training weights")
 
+    # VLB loss
+    def _vb_terms_bpd(
+        self, x_start, x_t, t, clip_denoised=True, model_kwargs=None, frozen_out=None
+    ):
+        """
+        Get a term for the variational lower-bound.
+
+        The resulting units are bits (rather than nats, as one might expect).
+        This allows for comparison to other papers.
+
+        :return: a dict with the following keys:
+                 - 'output': a shape [N] tensor of NLLs or KLs.
+                 - 'pred_xstart': the x_0 predictions.
+        """
+        true_mean, _, true_log_variance_clipped = self.q_posterior_mean_variance(
+            x_start=x_start, x_t=x_t, t=t
+        )
+        out = self.p_mean_variance(
+            x_t,
+            t,
+            clip_denoised=clip_denoised,
+            model_kwargs=model_kwargs,
+            frozen_out=frozen_out,
+        )
+        kl = normal_kl(
+            true_mean,
+            true_log_variance_clipped,
+            out[P_MEAN_VAR_DICT_MEAN_KEY],
+            out[P_MEAN_VAR_DICT_LOG_VARIANCE_KEY],
+        )
+        kl = mean_flat(kl) / np.log(2.0)
+
+        decoder_nll = -discretized_gaussian_log_likelihood(
+            x_start,
+            means=out[P_MEAN_VAR_DICT_MEAN_KEY],
+            log_scales=0.5 * out[P_MEAN_VAR_DICT_LOG_VARIANCE_KEY],
+        )
+        assert decoder_nll.shape == x_start.shape
+        decoder_nll = mean_flat(decoder_nll) / np.log(2.0)
+
+        # At the first timestep return the decoder NLL,
+        # otherwise return KL(q(x_{t-1}|x_t,x_0) || p(x_{t-1}|x_t))
+        output = torch.where((t == 0), decoder_nll, kl)
+        return {"output": output, "pred_xstart": out[P_MEAN_VAR_DICT_PRED_X_0_KEY]}
+
     # Sampling methods
     def p_mean_variance(
         self,
@@ -359,6 +405,7 @@ class LitDiffusionBase(pl.LightningModule):
         clip_denoised: bool,
         denoised_fn: Optional[Callable] = None,
         model_kwargs: Optional[Dict[str, Any]] = None,
+        frozen_out: Optional[torch.Tensor] = None,
     ) -> Dict[str, torch.Tensor]:
         """
         Apply the model to get p(x_{t-1} | x_t), as well as a prediction of
@@ -372,6 +419,8 @@ class LitDiffusionBase(pl.LightningModule):
             clip_denoised.
         :param model_kwargs: if not None, a dict of extra keyword arguments to
             pass to the model. This can be used for conditioning.
+        :param frozen_out: Half-detached version of model output, still learn the variance using the variational bound, but don't let
+            it affect our mean prediction.
         :return: a dict with the following keys:
                  - 'p_mean': the model mean output.
                  - 'p_variance': the model variance output.

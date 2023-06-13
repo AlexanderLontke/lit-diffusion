@@ -2,12 +2,14 @@ from typing import Any, Callable, Dict, Optional, Union
 
 
 import torch
+import torch.nn.functional as F
 from torch import nn
 
 # Lit Diffusion DDPM
 from lit_diffusion.ddpm.util import extract_into_tensor
 from lit_diffusion.ddpm.constants import (
     DDPMDiffusionTarget,
+    DDPMLossType
 )
 
 # Lit Diffusion
@@ -28,6 +30,7 @@ class LitDDPM(LitDiffusionBase):
     def __init__(
         self,
         diffusion_target: Union[str, DDPMDiffusionTarget],
+        loss_type: Optional[DDPMLossType] = None,
         *args,
         **kwargs,
     ):
@@ -36,10 +39,8 @@ class LitDDPM(LitDiffusionBase):
         # Set diffusion training target
         self.diffusion_target = DDPMDiffusionTarget(diffusion_target)
 
-        # Setup loss
-        # MSE loss is equivalent to L2 loss,
-        # averaging is delayed to enable t-schedule sampling
-        self.loss = nn.MSELoss(reduction="none")
+        # Setup loss, default L_simple
+        self.loss_type = DDPMLossType(loss_type) if loss_type else DDPMLossType.MSE
 
     # Methods relating to approximating p_{\theta}(x_{t-1}|x_{t})
     def p_loss(
@@ -56,11 +57,11 @@ class LitDDPM(LitDiffusionBase):
         :param model_kwargs: Any additional model key word arguments that might be needed
         :return: Simplified loss for the KL_divergence of q and p_{\theta}
         """
-        noised_x, noise = self.q_sample(
+        x_t, noise = self.q_sample(
             x_start=x_0,
             t=t,
         )
-        model_x = self.p_theta_model(noised_x, t, **model_kwargs)
+        model_x = self.p_theta_model(x_t, t, **model_kwargs)
 
         # Determine target
         if self.diffusion_target == DDPMDiffusionTarget.X_0:
@@ -68,15 +69,34 @@ class LitDDPM(LitDiffusionBase):
             reconstructed_x0 = model_x
         elif self.diffusion_target == DDPMDiffusionTarget.EPS:
             target = noise
-            reconstructed_x0 = self.q_sample_inverse(x_t=noised_x, noise=model_x, t=t)
+            reconstructed_x0 = self.q_sample_inverse(x_t=x_t, noise=model_x, t=t)
         else:
             raise NotImplementedError(
                 f"Diffusion target {self.diffusion_target} not supported"
             )
-        return {
-            LOSS_DICT_LOSSES_KEY: self.loss(model_x, target).mean(
+
+        # Calculate loss
+        if self.loss_type == DDPMLossType.MSE:
+            # MSE loss is equivalent to L2 loss,
+            # averaging is delayed to enable t-schedule sampling
+            losses = F.mse_loss(model_x, target=target, reduction="none").mean(
                 dim=list(range(1, len(model_x.shape)))
-            ),
+            )
+        elif self.loss_type == DDPMLossType.VLB:
+            vb_out = self._vb_terms_bpd(
+                x_start=x_0,
+                x_t=x_t,
+                t=t,
+                clip_denoised=False,
+                model_kwargs=model_kwargs,
+            )
+            losses = vb_out["output"]
+            reconstructed_x0 = vb_out["pred_xstart"]
+        else:
+            raise NotImplementedError(f"Loss type {self.loss_type} not implemented")
+
+        return {
+            LOSS_DICT_LOSSES_KEY: losses,
             LOSS_DICT_MODEL_OUTPUT_KEY: model_x,
             LOSS_DICT_RECONSTRUCTED_INPUT_KEY: reconstructed_x0,
             LOSS_DICT_TARGET_KEY: target,

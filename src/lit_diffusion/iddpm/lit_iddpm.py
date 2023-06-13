@@ -13,9 +13,11 @@ import numpy as np
 # PyTorch
 import torch
 
+# Lit Diffusion
+from lit_diffusion.utils.vlb_utils import mean_flat
+
 # Lit Dffusion IDDPM
-from lit_diffusion.iddpm.losses import normal_kl, discretized_gaussian_log_likelihood
-from lit_diffusion.iddpm.util import extract_into_tensor, mean_flat
+from lit_diffusion.iddpm.util import extract_into_tensor
 from lit_diffusion.iddpm.constants import (
     IDDPMTargetType,
     IDDPMVarianceType,
@@ -138,50 +140,6 @@ class LitIDDPM(LitDiffusionBase):
             LOSS_DICT_TARGET_KEY: target,
             LOSS_DICT_MODEL_OUTPUT_KEY: model_output,
         }
-
-    def _vb_terms_bpd(
-        self, x_start, x_t, t, clip_denoised=True, model_kwargs=None, frozen_out=None
-    ):
-        """
-        Get a term for the variational lower-bound.
-
-        The resulting units are bits (rather than nats, as one might expect).
-        This allows for comparison to other papers.
-
-        :return: a dict with the following keys:
-                 - 'output': a shape [N] tensor of NLLs or KLs.
-                 - 'pred_xstart': the x_0 predictions.
-        """
-        true_mean, _, true_log_variance_clipped = self.q_posterior_mean_variance(
-            x_start=x_start, x_t=x_t, t=t
-        )
-        out = self.p_mean_variance(
-            x_t,
-            t,
-            clip_denoised=clip_denoised,
-            model_kwargs=model_kwargs,
-            frozen_out=frozen_out,
-        )
-        kl = normal_kl(
-            true_mean,
-            true_log_variance_clipped,
-            out[P_MEAN_VAR_DICT_MEAN_KEY],
-            out[P_MEAN_VAR_DICT_LOG_VARIANCE_KEY],
-        )
-        kl = mean_flat(kl) / np.log(2.0)
-
-        decoder_nll = -discretized_gaussian_log_likelihood(
-            x_start,
-            means=out[P_MEAN_VAR_DICT_MEAN_KEY],
-            log_scales=0.5 * out[P_MEAN_VAR_DICT_LOG_VARIANCE_KEY],
-        )
-        assert decoder_nll.shape == x_start.shape
-        decoder_nll = mean_flat(decoder_nll) / np.log(2.0)
-
-        # At the first timestep return the decoder NLL,
-        # otherwise return KL(q(x_{t-1}|x_t,x_0) || p(x_{t-1}|x_t))
-        output = torch.where((t == 0), decoder_nll, kl)
-        return {"output": output, "pred_xstart": out[P_MEAN_VAR_DICT_PRED_X_0_KEY]}
 
     def q_mean_variance(self, x_start, t):
         """

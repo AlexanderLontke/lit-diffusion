@@ -6,6 +6,16 @@ import torch
 import numpy as np
 
 
+def approx_standard_normal_cdf(x):
+    """
+    A fast approximation of the cumulative distribution function of the
+    standard normal.
+    """
+    return 0.5 * (
+            1.0 + torch.tanh(np.sqrt(2.0 / np.pi) * (x + 0.044715 * torch.pow(x, 3)))
+    )
+
+
 def normal_kl(mean1, logvar1, mean2, logvar2):
     """
     Compute the KL divergence between two gaussians.
@@ -67,12 +77,8 @@ def discretized_gaussian_log_likelihood(x, *, means, log_scales):
     assert log_probs.shape == x.shape
     return log_probs
 
-
-def approx_standard_normal_cdf(x):
+def mean_flat(tensor):
     """
-    A fast approximation of the cumulative distribution function of the
-    standard normal.
+    Take the mean over all non-batch dimensions.
     """
-    return 0.5 * (
-        1.0 + torch.tanh(np.sqrt(2.0 / np.pi) * (x + 0.044715 * torch.pow(x, 3)))
-    )
+    return tensor.mean(dim=list(range(1, len(tensor.shape))))
