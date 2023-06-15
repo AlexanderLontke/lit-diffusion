@@ -507,7 +507,7 @@ class LitDiffusionBase(pl.LightningModule):
                         result.append(x_t)
                 # Sample x_t based off x_{t-1}
                 x_t = self.p_sample(
-                    x_t=x_t,
+                    x=x_t,
                     t=torch.full(
                         size=(batch_size,),
                         fill_value=t,
