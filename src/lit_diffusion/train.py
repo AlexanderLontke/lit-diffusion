@@ -18,6 +18,7 @@ from lit_diffusion.constants import (
     PL_TRAINER_CONFIG_KEY,
     PL_WANDB_LOGGER_CONFIG_KEY,
     PL_MODEL_CHECKPOINT_CONFIG_KEY,
+    CUSTOM_CALLBACKS_CONFIG_KEY,
 )
 
 
@@ -38,6 +39,17 @@ def main(config: Dict):
     # - WAND logging
     # - Checkpointing
     # - Learning rate monitoring
+    custom_callbacks = (
+        [
+            instantiate_python_class_from_string_config(
+                class_config=class_config,
+                verbose=verbose_init,
+            )
+            for class_config in config[CUSTOM_CALLBACKS_CONFIG_KEY]
+        ]
+        if CUSTOM_CALLBACKS_CONFIG_KEY in config.keys()
+        else []
+    )
     trainer = pl.Trainer(
         **config[PL_TRAINER_CONFIG_KEY],
         logger=WandbLogger(**config[PL_WANDB_LOGGER_CONFIG_KEY], config=config),
@@ -46,6 +58,7 @@ def main(config: Dict):
                 **config[PL_MODEL_CHECKPOINT_CONFIG_KEY],
             ),
             LearningRateMonitor(),
+            *custom_callbacks,
         ],
     )
 

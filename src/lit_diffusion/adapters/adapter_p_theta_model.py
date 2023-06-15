@@ -33,9 +33,11 @@ class AdapterPThetaModel(nn.Module):
         model_output = self._p_theta_model(x_t, *args, **kwargs)
 
         # Make sure only x_{t-1} is returned
-        model_output = model_output[
-            self.p_theta_model_output_index
-        ] if isinstance(model_output, tuple) else model_output
+        model_output = (
+            model_output[self.p_theta_model_output_index]
+            if isinstance(model_output, tuple)
+            else model_output
+        )
 
         # Mask output if mask is available
         if self.output_mask_key:

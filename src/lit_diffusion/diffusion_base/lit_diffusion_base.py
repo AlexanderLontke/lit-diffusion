@@ -25,7 +25,11 @@ from lit_diffusion.iddpm.sampler import (
 from lit_diffusion.util import instantiate_python_class_from_string_config
 from lit_diffusion.ddpm.util import default, extract_into_tensor
 from lit_diffusion.utils.lit_ema import LitEma
-from lit_diffusion.utils.vlb_utils import mean_flat, normal_kl, discretized_gaussian_log_likelihood
+from lit_diffusion.utils.vlb_utils import (
+    mean_flat,
+    normal_kl,
+    discretized_gaussian_log_likelihood,
+)
 from lit_diffusion.diffusion_base.constants import (
     LOGGING_TRAIN_PREFIX,
     LOGGING_VAL_PREFIX,
@@ -142,7 +146,7 @@ class LitDiffusionBase(pl.LightningModule):
         self.data_key = data_key
 
     # Methods relating to calling the de-noising model
-    def format_p_theta_model_input(self, x_0,  batch):
+    def format_p_theta_model_input(self, x_0, batch):
         model_kwargs = {}
         if self.auxiliary_p_theta_model_input:
             model_kwargs = {

@@ -12,7 +12,7 @@ def approx_standard_normal_cdf(x):
     standard normal.
     """
     return 0.5 * (
-            1.0 + torch.tanh(np.sqrt(2.0 / np.pi) * (x + 0.044715 * torch.pow(x, 3)))
+        1.0 + torch.tanh(np.sqrt(2.0 / np.pi) * (x + 0.044715 * torch.pow(x, 3)))
     )
 
 
@@ -76,6 +76,7 @@ def discretized_gaussian_log_likelihood(x, *, means, log_scales):
     )
     assert log_probs.shape == x.shape
     return log_probs
+
 
 def mean_flat(tensor):
     """

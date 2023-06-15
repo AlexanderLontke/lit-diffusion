@@ -7,10 +7,7 @@ from torch import nn
 
 # Lit Diffusion DDPM
 from lit_diffusion.ddpm.util import extract_into_tensor
-from lit_diffusion.ddpm.constants import (
-    DDPMDiffusionTarget,
-    DDPMLossType
-)
+from lit_diffusion.ddpm.constants import DDPMDiffusionTarget, DDPMLossType
 
 # Lit Diffusion
 from lit_diffusion.diffusion_base.lit_diffusion_base import LitDiffusionBase
