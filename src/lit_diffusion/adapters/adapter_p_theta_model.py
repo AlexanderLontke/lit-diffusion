@@ -20,6 +20,7 @@ class AdapterPThetaModel(nn.Module):
         self.output_mask_key = output_mask_key
 
     def forward(self, x_t: torch.Tensor, t: torch.Tensor, *args, **kwargs):
+        print("x_t", x_t.shape, "t", t.shape, "args", args, "kwargs", kwargs.keys())
         # If an argument for the timestep exists in the model forward call include it in the
         # key word arguments
         if self.p_theta_model_call_timestep_key:
