@@ -208,7 +208,8 @@ class LitDiffusionBase(pl.LightningModule):
         """
         return (
             extract_into_tensor(self.sqrt_recip_alphas_cumprod, t, x_t.shape) * x_t
-            - extract_into_tensor(self.sqrt_recip_m1_alphas_cumprod, t, x_t.shape) * noise
+            - extract_into_tensor(self.sqrt_recip_m1_alphas_cumprod, t, x_t.shape)
+            * noise
         )
 
     def _train_val_step(
@@ -357,7 +358,9 @@ class LitDiffusionBase(pl.LightningModule):
                     print(f"{context}: Restored training weights")
 
     # VLB loss
-    def q_posterior_mean_variance(self, x_start: torch.Tensor, x_t: torch.Tensor, t: torch.Tensor):
+    def q_posterior_mean_variance(
+        self, x_start: torch.Tensor, x_t: torch.Tensor, t: torch.Tensor
+    ):
         """
         Compute the mean and variance of the diffusion posterior:
 
@@ -366,18 +369,18 @@ class LitDiffusionBase(pl.LightningModule):
         """
         assert x_start.shape == x_t.shape
         posterior_mean = (
-                extract_into_tensor(self.posterior_mean_coef1, t, x_t.shape) * x_start
-                + extract_into_tensor(self.posterior_mean_coef2, t, x_t.shape) * x_t
+            extract_into_tensor(self.posterior_mean_coef1, t, x_t.shape) * x_start
+            + extract_into_tensor(self.posterior_mean_coef2, t, x_t.shape) * x_t
         )
         posterior_variance = extract_into_tensor(self.posterior_variance, t, x_t.shape)
         posterior_log_variance_clipped = extract_into_tensor(
             self.posterior_log_variance_clipped, t, x_t.shape
         )
         assert (
-                posterior_mean.shape[0]
-                == posterior_variance.shape[0]
-                == posterior_log_variance_clipped.shape[0]
-                == x_start.shape[0]
+            posterior_mean.shape[0]
+            == posterior_variance.shape[0]
+            == posterior_log_variance_clipped.shape[0]
+            == x_start.shape[0]
         )
         return posterior_mean, posterior_variance, posterior_log_variance_clipped
 

@@ -148,9 +148,7 @@ class LitDDPM(LitDiffusionBase):
                  - 'pred_x_0': the prediction for x_0.
         """
         model_output = (
-            frozen_out
-            if frozen_out
-            else self.p_theta_model(x_t, t, **model_kwargs)
+            frozen_out if frozen_out else self.p_theta_model(x_t, t, **model_kwargs)
         )
         if self.diffusion_target == DDPMDiffusionTarget.EPS:
             x_0_predicted = (
