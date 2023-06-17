@@ -118,7 +118,6 @@ class LitDDPM(LitDiffusionBase):
         )
         return posterior_mean, posterior_variance, posterior_log_variance_clipped
 
-    @torch.no_grad()
     def p_mean_variance(
         self,
         x_t: torch.Tensor,
