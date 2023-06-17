@@ -27,7 +27,7 @@ class LitDDPM(LitDiffusionBase):
     def __init__(
         self,
         diffusion_target: Union[str, DDPMDiffusionTarget],
-        loss_type: Optional[DDPMLossType] = None,
+        loss_type: Optional[Union[str, DDPMLossType]] = None,
         *args,
         **kwargs,
     ):

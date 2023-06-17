@@ -13,4 +13,4 @@ P_MEAN_VAR_DICT_PRED_X_0_KEY = "pred_x_0"
 # Metric keys
 LOGGING_TRAIN_PREFIX = "train/"
 LOGGING_VAL_PREFIX = "val/"
-TRAINING_LOSS_METRIC_KEY = "mse_loss"
+TRAINING_LOSS_METRIC_KEY = "loss"
