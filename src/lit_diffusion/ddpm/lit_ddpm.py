@@ -126,6 +126,7 @@ class LitDDPM(LitDiffusionBase):
         clip_denoised: bool,
         denoised_fn: Optional[Callable] = None,
         model_kwargs: Optional[Dict[str, Any]] = None,
+        frozen_out: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, torch.Tensor]:
         """
         Calculates an approximation of x_0, given eps_{\theta} and based off that returns the posterior
@@ -138,13 +139,19 @@ class LitDDPM(LitDiffusionBase):
             clip_denoised
         :param model_kwargs: if not None, a dict of extra keyword arguments to
             pass to the model. This can be used for conditioning.
+        :param frozen_out: Half-detached version of model output, still learn the variance using the variational bound,
+            but don't let it affect our mean prediction.
         :return: a dict with the following keys:
                  - 'p_mean': the model mean output.
                  - 'p_variance': the model variance output.
                  - 'p_log_variance': the log of 'variance'.
                  - 'pred_x_0': the prediction for x_0.
         """
-        model_output = self.p_theta_model(x_t, t, **model_kwargs)
+        model_output = (
+            frozen_out
+            if frozen_out
+            else self.p_theta_model(x_t, t, **model_kwargs)
+        )
         if self.diffusion_target == DDPMDiffusionTarget.EPS:
             x_0_predicted = (
                 extract_into_tensor(self.sqrt_recip_alphas_cumprod, t, x_t.shape) * x_t
