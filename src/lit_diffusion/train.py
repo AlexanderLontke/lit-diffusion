@@ -23,6 +23,9 @@ from lit_diffusion.constants import (
 
 
 def main(config: Dict):
+    # Instantiate Logger
+    wandb_logger = WandbLogger(**config[PL_WANDB_LOGGER_CONFIG_KEY], config=config)
+
     # Set seed
     pl.seed_everything(config[SEED_CONFIG_KEY])
     verbose_init = config.get(VERBOSE_INIT_CONFIG_KEY, False)
@@ -52,7 +55,7 @@ def main(config: Dict):
     )
     trainer = pl.Trainer(
         **config[PL_TRAINER_CONFIG_KEY],
-        logger=WandbLogger(**config[PL_WANDB_LOGGER_CONFIG_KEY], config=config),
+        logger=wandb_logger,
         callbacks=[
             ModelCheckpoint(
                 **config[PL_MODEL_CHECKPOINT_CONFIG_KEY],
