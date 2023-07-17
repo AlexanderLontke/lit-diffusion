@@ -43,10 +43,12 @@ class LitIDDPM(LitDiffusionBase):
         self,
         diffusion_target: Union[str, IDDPMTargetType],
         model_variance_type: Union[str, IDDPMVarianceType],
+        loss_type: Union[str, IDDPMLossType],
         *args,
         **kwargs
     ):
         super().__init__(*args, **kwargs)
+        self.loss_type = IDDPMLossType(loss_type)
         self.model_variance_type = IDDPMVarianceType(model_variance_type)
         self.diffusion_target = IDDPMTargetType(diffusion_target)
         self.num_timesteps = int(self.betas.shape[0])
