@@ -100,7 +100,7 @@ class LitIDDPM(LitDiffusionBase):
                 x_t, self._scale_timesteps(t), **model_kwargs
             )
 
-            if self.model_var_type in [
+            if self.model_variance_type in [
                 IDDPMVarianceType.LEARNED,
                 IDDPMVarianceType.LEARNED_RANGE,
             ]:
@@ -204,7 +204,7 @@ class LitIDDPM(LitDiffusionBase):
         ]:
             assert model_output.shape == (B, C * 2, *x_t.shape[2:])
             model_output, model_var_values = torch.split(model_output, C, dim=1)
-            if self.model_var_type == IDDPMVarianceType.LEARNED:
+            if self.model_variance_type == IDDPMVarianceType.LEARNED:
                 model_log_variance = model_var_values
                 model_variance = torch.exp(model_log_variance)
             else:
