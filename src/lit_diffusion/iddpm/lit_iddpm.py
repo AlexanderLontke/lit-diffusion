@@ -203,7 +203,7 @@ class LitIDDPM(LitDiffusionBase):
         assert t.shape == (B,)
         model_output = (
             frozen_out
-            if frozen_out
+            if frozen_out is not None
             else self.p_theta_model(x_t, self._scale_timesteps(t), **model_kwargs)
         )
 
