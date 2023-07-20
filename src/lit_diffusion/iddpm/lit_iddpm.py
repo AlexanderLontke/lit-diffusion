@@ -50,7 +50,7 @@ def split_variance_values(model_output: torch.Tensor, x_t_shape: Tuple) -> List[
         raise ValueError(f"Unrecognized shape {x_t_shape}")
 
     assert model_output.shape == expected_shape, f"Expected ({expected_shape}) but got ({model_output.shape})"
-    return torch.split(model_output, C, dim=1)
+    return [tensor.squeeze() for tensor in torch.split(model_output, C, dim=1)]
 
 
 class LitIDDPM(LitDiffusionBase):
