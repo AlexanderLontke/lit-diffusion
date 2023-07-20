@@ -5,7 +5,7 @@ https://arxiv.org/abs/2102.09672
 Code adapted from:
 https://github.com/openai/improved-diffusion/blob/main/improved_diffusion/gaussian_diffusion.py
 """
-from typing import Any, Callable, Dict, Optional, Union
+from typing import Any, Callable, Dict, Optional, Union, Tuple, List
 
 # Numpy
 import numpy as np
@@ -36,6 +36,21 @@ from lit_diffusion.diffusion_base.constants import (
     P_MEAN_VAR_DICT_LOG_VARIANCE_KEY,
     P_MEAN_VAR_DICT_PRED_X_0_KEY,
 )
+
+
+def split_variance_values(model_output: torch.Tensor, x_t_shape: Tuple) -> List[torch.Tensor, torch.Tensor]:
+    # In case we deal with image data
+    if len(x_t_shape) == 4:
+        B, C = x_t_shape[:2]
+        expected_shape = (B, C * 2, *x_t_shape[2:])
+    elif len(x_t_shape) == 3:
+        B, C = (x_t_shape[0], 1)
+        expected_shape = (B, C * 2, *x_t_shape[1:])
+    else:
+        raise ValueError(f"Unrecognized shape {x_t_shape}")
+
+    assert model_output.shape == expected_shape, f"Expected ({expected_shape}) but got ({model_output.shape})"
+    return torch.split(model_output, C, dim=1)
 
 
 class LitIDDPM(LitDiffusionBase):
@@ -104,18 +119,10 @@ class LitIDDPM(LitDiffusionBase):
                 IDDPMVarianceType.LEARNED,
                 IDDPMVarianceType.LEARNED_RANGE,
             ]:
-                # In case we deal with image data
-                if len(x_t.shape) == 4:
-                    B, C = x_t.shape[:2]
-                    expected_shape = (B, C * 2, *x_t.shape[2:])
-                elif len(x_t.shape) == 3:
-                    B, C = (x_t.shape[0], 1)
-                    expected_shape = (B, C * 2, *x_t.shape[1:])
-                else:
-                    raise ValueError(f"Unrecognized shape {x_t.shape}")
-
-                assert model_output.shape == expected_shape, f"Expected ({expected_shape}) but got ({model_output.shape})"
-                model_output, model_var_values = torch.split(model_output, C, dim=1)
+                model_output, model_var_values = split_variance_values(
+                    model_output=model_output,
+                    x_t_shape=x_t.shape
+                )
                 # Learn the variance using the variational bound, but don't let
                 # it affect our mean prediction.
                 frozen_out = torch.cat([model_output.detach(), model_var_values], dim=1)
@@ -211,8 +218,10 @@ class LitIDDPM(LitDiffusionBase):
             IDDPMVarianceType.LEARNED,
             IDDPMVarianceType.LEARNED_RANGE,
         ]:
-            assert model_output.shape == (B, C * 2, *x_t.shape[2:])
-            model_output, model_var_values = torch.split(model_output, C, dim=1)
+            model_output, model_var_values = split_variance_values(
+                    model_output=model_output,
+                    x_t_shape=x_t.shape
+                )
             if self.model_variance_type == IDDPMVarianceType.LEARNED:
                 model_log_variance = model_var_values
                 model_variance = torch.exp(model_log_variance)
