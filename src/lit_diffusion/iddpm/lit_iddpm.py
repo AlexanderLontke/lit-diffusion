@@ -50,7 +50,7 @@ def split_variance_values(model_output: torch.Tensor, x_t_shape: Tuple) -> List[
         raise ValueError(f"Unrecognized shape {x_t_shape}")
 
     assert model_output.shape == expected_shape, f"Expected ({expected_shape}) but got ({model_output.shape})"
-    return [tensor.squeeze() for tensor in torch.split(model_output, C, dim=1)]
+    return torch.split(model_output, C, dim=1)
 
 
 class LitIDDPM(LitDiffusionBase):
@@ -145,6 +145,7 @@ class LitIDDPM(LitDiffusionBase):
                 IDDPMTargetType.START_X: x_0,
                 IDDPMTargetType.EPSILON: noise,
             }[self.diffusion_target]
+            model_output = model_output.squeeze(dim=1)
             assert model_output.shape == target.shape == x_0.shape
             mse_term = mean_flat((target - model_output) ** 2)
             if "vb" in terms:
@@ -222,6 +223,8 @@ class LitIDDPM(LitDiffusionBase):
                     model_output=model_output,
                     x_t_shape=x_t.shape
                 )
+            model_output = model_output.squeeze(dim=1)
+            model_var_values = model_var_values.squeeze(dim=1)
             if self.model_variance_type == IDDPMVarianceType.LEARNED:
                 model_log_variance = model_var_values
                 model_variance = torch.exp(model_log_variance)
