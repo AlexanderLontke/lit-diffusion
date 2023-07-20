@@ -104,8 +104,17 @@ class LitIDDPM(LitDiffusionBase):
                 IDDPMVarianceType.LEARNED,
                 IDDPMVarianceType.LEARNED_RANGE,
             ]:
-                B, C = x_t.shape[:2] if len(x_t.shape) == 4 else (x_t.shape[0], 1)
-                assert model_output.shape == (B, C * 2, *x_t.shape[2:]), f"Expected ({(B, C * 2, *x_t.shape[2:])}) but got ({model_output.shape})"
+                # In case we deal with image data
+                if len(x_t.shape) == 4:
+                    B, C = x_t.shape[:2]
+                    expected_shape = (B, C * 2, *x_t.shape[2:])
+                elif len(x_t.shape) == 3:
+                    B, C = (x_t.shape[0], 1)
+                    expected_shape = (B, C * 2, *x_t.shape[1:])
+                else:
+                    raise ValueError(f"Unrecognized shape {x_t.shape}")
+
+                assert model_output.shape == expected_shape, f"Expected ({expected_shape}) but got ({model_output.shape})"
                 model_output, model_var_values = torch.split(model_output, 2, dim=1)
                 # Learn the variance using the variational bound, but don't let
                 # it affect our mean prediction.
