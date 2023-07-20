@@ -38,7 +38,7 @@ from lit_diffusion.diffusion_base.constants import (
 )
 
 
-def split_variance_values(model_output: torch.Tensor, x_t_shape: Tuple) -> List[torch.Tensor, torch.Tensor]:
+def split_variance_values(model_output: torch.Tensor, x_t_shape: Tuple) -> List[torch.Tensor]:
     # In case we deal with image data
     if len(x_t_shape) == 4:
         B, C = x_t_shape[:2]
