@@ -306,6 +306,10 @@ class LitDiffusionBase(pl.LightningModule):
             logging_prefix=LOGGING_TRAIN_PREFIX,
         )
 
+    def on_train_epoch_end(self) -> None:
+        for _, metric in self.training_metrics.items():
+            metric.reset()
+
     @torch.no_grad()
     def validation_step(
         self, batch, *args: Any, **kwargs: Any
@@ -317,6 +321,10 @@ class LitDiffusionBase(pl.LightningModule):
             logging_prefix=LOGGING_VAL_PREFIX,
         )
         return None
+
+    def on_validation_epoch_end(self) -> None:
+        for _, metric in self.validation_metrics.items():
+            metric.reset()
 
     def configure_optimizers(self):
         """
