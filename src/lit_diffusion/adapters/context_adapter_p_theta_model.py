@@ -26,7 +26,7 @@ class ContextAdapterPThetaModel(nn.Module):
         context = []
         for context_key in self.context_keys:
             context.append(kwargs.pop(context_key))
-        context = torch.concat(context, dim=1)
+        context = torch.concat(context, dim=1).unsqueeze(dim=1)
 
         # Run it through the embedder if available
         if self.context_embedder is not None:
