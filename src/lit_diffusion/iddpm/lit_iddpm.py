@@ -38,7 +38,9 @@ from lit_diffusion.diffusion_base.constants import (
 )
 
 
-def split_variance_values(model_output: torch.Tensor, x_t_shape: Tuple) -> List[torch.Tensor]:
+def split_variance_values(
+    model_output: torch.Tensor, x_t_shape: Tuple
+) -> List[torch.Tensor]:
     # In case we deal with image data
     if len(x_t_shape) == 4:
         B, C = x_t_shape[:2]
@@ -49,7 +51,9 @@ def split_variance_values(model_output: torch.Tensor, x_t_shape: Tuple) -> List[
     else:
         raise ValueError(f"Unrecognized shape {x_t_shape}")
 
-    assert model_output.shape == expected_shape, f"Expected ({expected_shape}) but got ({model_output.shape})"
+    assert (
+        model_output.shape == expected_shape
+    ), f"Expected ({expected_shape}) but got ({model_output.shape})"
     return torch.split(model_output, C, dim=1)
 
 
@@ -61,7 +65,7 @@ class LitIDDPM(LitDiffusionBase):
         loss_type: Union[str, IDDPMLossType],
         rescale_timesteps: bool = False,
         *args,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(*args, **kwargs)
         self.rescale_timesteps = rescale_timesteps
@@ -120,8 +124,7 @@ class LitIDDPM(LitDiffusionBase):
                 IDDPMVarianceType.LEARNED_RANGE,
             ]:
                 model_output, model_var_values = split_variance_values(
-                    model_output=model_output,
-                    x_t_shape=x_t.shape
+                    model_output=model_output, x_t_shape=x_t.shape
                 )
                 # Learn the variance using the variational bound, but don't let
                 # it affect our mean prediction.
@@ -220,9 +223,8 @@ class LitIDDPM(LitDiffusionBase):
             IDDPMVarianceType.LEARNED_RANGE,
         ]:
             model_output, model_var_values = split_variance_values(
-                    model_output=model_output,
-                    x_t_shape=x_t.shape
-                )
+                model_output=model_output, x_t_shape=x_t.shape
+            )
             model_output = model_output.squeeze(dim=1)
             model_var_values = model_var_values.squeeze(dim=1)
             if self.model_variance_type == IDDPMVarianceType.LEARNED:
