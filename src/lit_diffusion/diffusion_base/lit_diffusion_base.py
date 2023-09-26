@@ -155,7 +155,7 @@ class LitDiffusionBase(pl.LightningModule):
             }
 
         # stack data from kwargs onto x if it is desired
-        if self.stack_inputs_keys:
+        if self.stack_inputs_keys is not None:
             for k in self.stack_inputs_keys:
                 x_0 = torch.cat([x_0, model_kwargs.pop(k)], dim=1)
         return x_0, model_kwargs

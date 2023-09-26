@@ -1,3 +1,4 @@
+import copy
 from pprint import pprint
 from typing import Any, Dict
 from inspect import isfunction
@@ -25,6 +26,7 @@ def instantiate_python_class_from_string_config(
     verbose: bool = False,
     **kwargs,
 ):
+    class_config = copy.deepcopy(class_config)
     # Assert that necessary keys are contained in config
     assert isinstance(class_config, Dict), f"{class_config} is not a dictionary."
     assert (
