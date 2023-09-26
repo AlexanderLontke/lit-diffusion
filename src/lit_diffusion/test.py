@@ -132,14 +132,14 @@ def run_test(
 
     # Update WANDB config for eval run
     complete_config[PL_WANDB_LOGGER_CONFIG_KEY][WANDB_PROJECT_KEY] = (
-        wandb_project_name + eval_suffix
-        if not wandb_project_name.endswith(eval_suffix)
-        else wandb_project_name
+        wandb_sub_project_name + eval_suffix
+        if not wandb_sub_project_name.endswith(eval_suffix)
+        else wandb_sub_project_name
     )
     complete_config[PL_WANDB_LOGGER_CONFIG_KEY][WANDB_NAME_KEY] = (
-        wandb_run_name + eval_suffix
-        if not wandb_run_name.endswith(eval_suffix)
-        else wandb_run_name
+        wandb_sub_project_name + eval_suffix
+        if not wandb_sub_project_name.endswith(eval_suffix)
+        else wandb_sub_project_name
     )
     # Save new config
     original_config = copy.deepcopy(complete_config)
