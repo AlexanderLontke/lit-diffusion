@@ -159,6 +159,8 @@ def run_test(
             learning_rate=pl_module.learning_rate,
             loss=pl_module.loss,
             target_key=pl_module.target_key,
+            data_key=pl_module.data_key,
+            stack_input_keys=pl_module.stack_input_keys,
             validation_metrics=pl_module.validation_metrics,
         )
         # Create test dataloader config
