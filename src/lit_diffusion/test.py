@@ -112,13 +112,13 @@ def get_best_checkpoints(
 
 def run_test(
     complete_config: Dict,
+    wandb_project_name: str,
     through_callback: bool,
     test_beton_file: Optional[Path] = None,
     eval_suffix: str = "-eval",
 ):
     # Get WANDB values
-    wandb_sub_project_name = complete_config[WANDB_PROJECT_KEY]
-    wandb_project_name = complete_config[PL_WANDB_LOGGER_CONFIG_KEY][WANDB_PROJECT_KEY]
+    wandb_sub_project_name = complete_config[PL_WANDB_LOGGER_CONFIG_KEY][WANDB_PROJECT_KEY]
     wandb_run_name = complete_config[PL_WANDB_LOGGER_CONFIG_KEY][WANDB_NAME_KEY]
 
     # Fetch best checkpoints
@@ -227,6 +227,9 @@ if __name__ == '__main__':
     with config_file_path.open("r") as config_file:
         config = yaml.safe_load(config_file)
 
+    # Get wand project name
+    wandb_project_name = args.project_name
+
     # Select best checkpoint method
     through_callback = args.through_callback.lower() in ["true"]
 
@@ -235,6 +238,7 @@ if __name__ == '__main__':
 
     run_test(
         complete_config=config,
+        wandb_project_name=wandb_project_name,
         through_callback=through_callback,
         test_beton_file=test_beton_file,
     )
