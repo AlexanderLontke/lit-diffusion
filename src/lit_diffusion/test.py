@@ -195,7 +195,7 @@ if __name__ == '__main__':
     parser.add_argument(
         "-p",
         "--project-name",
-        type=Path,
+        type=str,
         default="ssl-diffusion",
         help="wandb-project-name",
         required=False,
