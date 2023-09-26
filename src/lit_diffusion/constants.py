@@ -30,3 +30,11 @@ CALL_UPON_INSTANTIATION_KEY = "call"
 
 # Callbacks
 CUSTOM_CALLBACKS_CONFIG_KEY = "custom_callbacks"
+EPOCH_KEY = "epoch"
+LAST_CKPT_NAME = "last.ckpt"
+MONITOR_KEY = "monitor"
+MONITOR_MODE_KEY = "monitor_mode"
+
+# WandB
+WANDB_PROJECT_KEY = "project"
+WANDB_NAME_KEY = "name"
